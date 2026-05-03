@@ -8,6 +8,22 @@ Ubuntu 24.04 based runtime image for AI agents. It includes Node.js 24, Bun, uv-
 docker build -t astrum-agent-runtime:ubuntu24.04 .
 ```
 
+## GitHub Actions Package
+
+Every non-README push builds and pushes the image to GitHub Container Registry:
+
+```text
+ghcr.io/nyrest/astrum-agent-runtime:YYYYMMDD-shortsha
+```
+
+Example tag:
+
+```text
+ghcr.io/nyrest/astrum-agent-runtime:20260503-1a2b3c4
+```
+
+The workflow is also manually triggerable from GitHub Actions.
+
 ## Verify
 
 ```bash
