@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.DS_Store
+Thumbs.db
+dist
+build
+coverage
+*.log
