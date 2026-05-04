@@ -1,130 +1,112 @@
-# AI Agent Runtime Docker Image
+# Astrum Agent Runtime
 
-Ubuntu 24.04 based runtime image for AI agents. It includes Node.js 24, Bun, uv-managed Python 3.14, common SDK/build tools, headless Office/PDF tooling, CJK/emoji fonts, database clients, browser automation tooling, and multimedia tools.
+A powerhouse Ubuntu 24.04 Docker image meticulously optimized for AI agents, developers, and automation workflows. It provides a "batteries-included" environment for the **Hermes Agent** and other Docker-based agent backends.
 
-## Build
+## 🚀 Quick Start
 
+### 1. Pull the Image
 ```bash
-docker build -t astrum-agent-runtime:ubuntu24.04 .
+docker pull ghcr.io/nyrest/astrum-agent-runtime:latest
 ```
 
-## GitHub Actions Package
-
-Every non-README push to `main` builds and pushes the image to GitHub Container Registry:
-
-```text
-ghcr.io/nyrest/astrum-agent-runtime:YYYYMMDD-shortsha
-ghcr.io/nyrest/astrum-agent-runtime:latest
-```
-
-Example tag:
-
-```text
-ghcr.io/nyrest/astrum-agent-runtime:20260503-1a2b3c4
-```
-
-The `latest` tag is a moving alias for the newest pushed image. It does not duplicate the image layers in GHCR; it only adds another tag/manifest reference to the same pushed package, so storage overhead is negligible metadata rather than another full image copy.
-
-## Verify
-
+### 2. Configure Hermes Agent
+Run the setup TUI to configure your environment:
 ```bash
-docker run --rm astrum-agent-runtime:ubuntu24.04 verify-runtime
+hermes setup terminal
 ```
+- Select **Docker** as the backend.
+- Use `ghcr.io/nyrest/astrum-agent-runtime:latest` as the Docker image.
 
-## Run
-
+### 3. Manual Entry (Optional)
 ```bash
-docker run --rm -it -v "$PWD:/workspace" astrum-agent-runtime:ubuntu24.04
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/nyrest/astrum-agent-runtime:latest
 ```
 
-On PowerShell:
+## 📦 Pre-installed Packages
 
-```powershell
-docker run --rm -it -v "${PWD}:/workspace" astrum-agent-runtime:ubuntu24.04
-```
+This image includes a comprehensive suite of tools categorized for agentic tasks.
 
-## Hermes Agent
+| Category | Key Tools & Packages |
+| :--- | :--- |
+| **Runtimes** | Node.js 24, Python 3.14 (uv), Bun, Go SDK, Java (JRE Headless) |
+| **Package Managers** | `npm`, `pnpm`, `yarn`, `bun`, `uv`, `pip`, `pipx` |
+| **Web & API CLIs** | `vercel`, `wrangler` (Cloudflare), `gemini` (Google), `gws` (Google Workspace), `lark-cli` (Feishu) |
+| **Python Libraries** | `requests`, `httpx`, `pydantic`, `pandas`, `numpy`, `beautifulsoup4`, `ruff`, `duckdb` |
+| **Document Processing** | LibreOffice (Headless), `pandoc`, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
+| **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)**, Supabase CLI |
+| **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, `xh`, `websocat`, `socat`, `sshpass` |
+| **Cloud & DevOps** | `aws-cli`, `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
+| **Multimedia** | `ffmpeg`, `yt-dlp`, ImageMagick, `exiftool`, `oxipng` |
+| **Text & Data Utils** | `jq`, `yq`, `rg` (ripgrep), `fd`, `mlr` (miller), `csvkit`, `tmux` |
+| **Build Essentials** | `gcc`, `g++`, `clang`, `cmake`, `ninja`, `make`, `gdb`, `lldb`, `strace` |
+| **Compression** | `zip`, `unzip`, `7z`, `tar`, `zstd`, `unrar` |
+| **Fonts & I18n** | Noto CJK (Chinese/Japanese/Korean), Noto Color Emoji, Liberation, DejaVu |
 
-This image is intended for the Hermes Agent Docker backend. It preinstalls the runtime tools so Hermes does not need to `apt install` during a session, keeps the working directory at `/workspace`, and provides `/output` for gateway-visible exports.
+## 🤖 Hermes Agent Configuration
 
-Recommended Hermes settings:
+Optimized for the [Hermes Agent](https://github.com/nyrest/hermes) Docker backend.
 
 ```yaml
 terminal:
   backend: docker
-  docker_image: astrum-agent-runtime:ubuntu24.04
+  docker_image: ghcr.io/nyrest/astrum-agent-runtime:latest
   docker_mount_cwd_to_workspace: true
   docker_volumes:
     - "/home/user/.hermes/cache/documents:/output"
   container_cpu: 4
   container_memory: 8192
-  container_disk: 51200
   container_persistent: true
   docker_forward_env:
     - GITHUB_TOKEN
-    - GH_TOKEN
-    - NPM_TOKEN
-    - VERCEL_TOKEN
-    - CLOUDFLARE_API_TOKEN
     - GEMINI_API_KEY
-    - GOOGLE_API_KEY
     - OPENAI_API_KEY
     - ANTHROPIC_API_KEY
-    - HF_TOKEN
 ```
 
-Only forward credentials you actually need in agent terminal sessions. Hermes does not pass arbitrary host secrets into Docker by default, and every variable listed in `docker_forward_env` is visible to commands executed inside the container.
+### Path Conventions
+- `/workspace`: Default working directory (mapped to your project).
+- `/output`: Recommended mount point for agent-generated exports.
+- `/cache`: Shared cache directory.
 
-Suggested `terminal.docker_forward_env` entries by use case:
+## 🔑 Environment Variables
 
-| Use case | Environment variables |
-| --- | --- |
-| GitHub CLI, GitHub API, GitHub Packages/GHCR | `GITHUB_TOKEN`, `GH_TOKEN`, `CR_PAT` |
-| npm registry publishing or private packages | `NPM_TOKEN`, `NODE_AUTH_TOKEN` |
-| Vercel CLI and deployments | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` |
-| Cloudflare Wrangler and cloudflared | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`, `TUNNEL_TOKEN` |
-| Gemini CLI / Google APIs | `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_APPLICATION_CREDENTIALS` |
-| OpenAI-compatible model gateways | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `AI_GATEWAY_API_KEY` |
-| Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` |
-| Hugging Face | `HF_TOKEN`, `HUGGING_FACE_HUB_TOKEN` |
-| AWS/S3/rclone workflows | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_REGION`, `AWS_DEFAULT_REGION`, `RCLONE_CONFIG` |
-| Database tools | `DATABASE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `MYSQL_HOST`, `MYSQL_TCP_PORT`, `MYSQL_USER`, `MYSQL_PWD`, `REDIS_URL` |
-| SSH and remote Git operations | `SSH_AUTH_SOCK`, `GIT_SSH_COMMAND` |
-| Proxy/networked environments | `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` |
+Common variables to forward for specific use cases:
 
-If you use a messaging gateway and want generated files to be sent back as media, write them inside the container under `/output/...` and emit the matching host path from the mounted export directory. Do not emit `/workspace/...` or `/output/...` unless that exact path is also valid on the host running the gateway.
+| Service | Variables |
+| :--- | :--- |
+| **GitHub** | `GITHUB_TOKEN`, `GH_TOKEN` |
+| **AI Providers** | `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `HF_TOKEN` |
+| **Cloud** | `VERCEL_TOKEN`, `CLOUDFLARE_API_TOKEN`, `AWS_ACCESS_KEY_ID` |
+| **Databases** | `DATABASE_URL`, `PGPASSWORD`, `MYSQL_PWD` |
 
-Keep `docker_run_as_host_user` at the default `false` unless host file ownership matters more than root-owned tool caches. The image is fully provisioned at build time, so it can run as a host UID for mounted project edits, but root-owned paths such as `/root/.cache` will not be writable unless you mount writable replacements.
+## 🛠 Technical Details
 
-For maximum isolation, set Docker networking according to the task:
+- **Base Image:** `ubuntu:24.04`
+- **Timezone:** `Asia/Shanghai`
+- **Locales:** `en_US.UTF-8` (Default), `zh_CN.UTF-8` (Supported)
+- **Workdir:** `/workspace`
+- **Browsers:** Playwright is installed, but browser binaries (Chromium/Firefox) are **not** pre-included to keep image size manageable. Use `playwright install` if needed at runtime.
 
-```yaml
-terminal:
-  backend: docker
-  docker_network: none
+---
+
+## 🏗 Development & Contribution
+
+### Building Locally
+
+```bash
+docker build -t astrum-agent-runtime .
 ```
 
-Use a normal Docker network when the agent needs package downloads, GitHub, Vercel, Wrangler, Gemini CLI, cloudflared, yt-dlp, or external APIs.
+### Verification
 
-## What Is Included
+Run the built-in verification script to ensure all critical tools are operational:
 
-- Timezone and locale: `Asia/Shanghai`, default `en_US.UTF-8`; `zh_CN.UTF-8` is generated for CJK compatibility.
-- Node.js 24 with npm.
-- Bun latest with global tools: `turbo`, `prettier`, `eslint`, `tsx`, `playwright`, `vercel`, `wrangler`, `gemini` from `@google/gemini-cli`, `typescript`, `pnpm`, `yarn`.
-- npm global CLIs: Neon CLI (`neon`, `neonctl`), Google Workspace CLI (`gws`), and Lark/Feishu CLI (`lark-cli`).
-- uv latest with Python 3.14 exposed as `python`, `python3`, and `python3.14`.
-- Python tooling and packages: `pip`, `pipx`, `virtualenv`, `setuptools`, `wheel`, `requests`, `httpx`, `pydantic`, `python-dotenv`, `toml`, `duckdb`, `beautifulsoup4`, `markdown`, `python-multipart`, `pypdf`, `pymupdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx`, `pandas`, `pyarrow`, `tabulate`, `numpy`, `ruff`.
-- Git tools: `git`, `gh`, `git-lfs`.
-- Build and SDK tools: `build-essential`, `cmake`, `ninja`, `pkg-config`, `clang`, `llvm`, Go SDK, `gdb`, `lldb`, `strace`, and related compile utilities.
-- Office/PDF tools: headless LibreOffice, `pandoc`, `poppler-utils`, `qpdf`, `ghostscript`.
-- Fonts: Noto CJK, Noto Color Emoji, Liberation, DejaVu.
-- Database clients: PostgreSQL, MySQL/MariaDB, Redis, SQLite, DuckDB CLI, Supabase CLI, and AWS CLI.
-- Network tools: `dnsutils`, `iproute2`, `iputils-ping`, `netcat-openbsd`, `nmap`, `tcpdump`, `traceroute`, `whois`, `cloudflared`, `telnet`, `socat`, `websocat`, `xh`, `openssh-client`, `sshpass`.
-- Text and shell tools: `gawk`, `grep`, `coreutils`, `moreutils`, `gettext-base`, `diffutils`, `patch`, `findutils`, `util-linux`, `procps`, `shellcheck`, `shfmt`, `hadolint`.
-- Common agent tools: `rg`, `fd`, `aria2`, `tmux`, `rsync`, `7z`, `zip`, `unzip`, `unrar`, `rclone`, `jq`, `yq`, `envsubst`, `timeout`, `flock`, `stdbuf`, `script`, `csvkit`, Miller (`mlr`).
-- Multimedia tools: `ffmpeg`, `ffprobe`, `yt-dlp`, ImageMagick, `exiftool`, `oxipng`.
-- Playwright CLI is installed, but browser binaries are not preinstalled. Install a browser in derived images or containers only when needed.
+```bash
+docker run --rm astrum-agent-runtime verify-runtime
+```
 
-## Size Notes
+### Continuous Integration
 
-This image intentionally favors runtime completeness over being tiny. The largest pieces are LibreOffice, CJK fonts, build toolchains, and Python data libraries. Browser binaries are intentionally not preinstalled. The Dockerfile still uses `--no-install-recommends` and clears apt/Bun/uv/pip caches to keep the image from growing unnecessarily.
+Every push to `main` (excluding README changes) triggers a GitHub Actions workflow that builds and pushes the image to:
+- `ghcr.io/nyrest/astrum-agent-runtime:latest`
+- `ghcr.io/nyrest/astrum-agent-runtime:YYYYMMDD-shortsha`

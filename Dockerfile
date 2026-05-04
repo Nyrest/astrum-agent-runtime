@@ -6,6 +6,8 @@ LABEL org.opencontainers.image.title="astrum-agent-runtime" \
 ARG DEBIAN_FRONTEND=noninteractive
 ARG NODE_MAJOR=24
 ARG OXIPNG_VERSION=10.1.1
+ARG HADOLINT_VERSION=2.13.1
+ARG WEBSOCAT_VERSION=1.14.1
 ARG BUN_INSTALL=/opt/bun
 ARG UV_INSTALL_DIR=/usr/local/bin
 ARG UV_PYTHON_INSTALL_DIR=/opt/uv-python
@@ -96,6 +98,7 @@ RUN printf '%s\n' \
         pipx \
         virtualenv \
         csvkit \
+        xh \
         jq \
         yq \
         ripgrep \
@@ -223,54 +226,34 @@ RUN set -eux; \
             aws_arch="x86_64"; \
             hadolint_arch="x86_64"; \
             supabase_arch="amd64"; \
-            xh_arch="x86_64"; \
-            websocat_arch="x86_64-unknown-linux-musl"; \
+            websocat_asset="websocat.x86_64-unknown-linux-musl"; \
             ;; \
         arm64) \
             aws_arch="aarch64"; \
             hadolint_arch="arm64"; \
             supabase_arch="arm64"; \
-            xh_arch="aarch64"; \
-            websocat_arch="aarch64-unknown-linux-musl"; \
+            websocat_asset="websocat.aarch64-unknown-linux-musl"; \
             ;; \
         *) \
             echo "Unsupported architecture: ${arch}" >&2; \
             exit 1; \
             ;; \
     esac; \
-    github_asset_url() { \
-        repo="$1"; \
-        pattern="$2"; \
-        curl -fsSL -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${repo}/releases/latest" \
-            | jq -r --arg pattern "${pattern}" 'first(.assets[] | select(.name | test($pattern)) | .browser_download_url) // empty'; \
-    }; \
     curl -fsSL -o /tmp/awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip"; \
     unzip -q /tmp/awscliv2.zip -d /tmp; \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli; \
     curl -fsSL -o /tmp/install-duckdb.sh https://install.duckdb.org; \
     sh /tmp/install-duckdb.sh; \
     ln -sf /root/.duckdb/cli/latest/duckdb /usr/local/bin/duckdb; \
-    curl -fsSL -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-${hadolint_arch}"; \
+    curl -fsSL -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-${hadolint_arch}"; \
     chmod +x /usr/local/bin/hadolint; \
-    supabase_url="$(github_asset_url supabase/cli "linux_${supabase_arch}\\.deb$")"; \
-    test -n "${supabase_url}"; \
-    curl -fsSL -o /tmp/supabase.deb "${supabase_url}"; \
+    curl -fsSL -o /tmp/supabase.deb "https://github.com/supabase/cli/releases/latest/download/supabase_linux_${supabase_arch}.deb"; \
     apt-get update; \
     apt-get install -y --no-install-recommends /tmp/supabase.deb; \
     rm -rf /var/lib/apt/lists/*; \
-    xh_url="$(github_asset_url ducaale/xh "${xh_arch}.*linux-musl.*\\.tar\\.gz$")"; \
-    test -n "${xh_url}"; \
-    curl -fsSL -o /tmp/xh.tar.gz "${xh_url}"; \
-    mkdir -p /tmp/xh; \
-    tar -xzf /tmp/xh.tar.gz -C /tmp/xh; \
-    xh_bin="$(find /tmp/xh -type f -name xh | head -n 1)"; \
-    test -n "${xh_bin}"; \
-    install -m 0755 "${xh_bin}" /usr/local/bin/xh; \
-    websocat_url="$(github_asset_url vi/websocat "websocat.*${websocat_arch}$")"; \
-    test -n "${websocat_url}"; \
-    curl -fsSL -o /usr/local/bin/websocat "${websocat_url}"; \
+    curl -fsSL -o /usr/local/bin/websocat "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/${websocat_asset}"; \
     chmod +x /usr/local/bin/websocat; \
-    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh /tmp/supabase.deb /tmp/xh /tmp/xh.tar.gz
+    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh /tmp/supabase.deb
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv --version \
