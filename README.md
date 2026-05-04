@@ -10,10 +10,11 @@ docker build -t astrum-agent-runtime:ubuntu24.04 .
 
 ## GitHub Actions Package
 
-Every non-README push builds and pushes the image to GitHub Container Registry:
+Every non-README push to `main` builds and pushes the image to GitHub Container Registry:
 
 ```text
 ghcr.io/nyrest/astrum-agent-runtime:YYYYMMDD-shortsha
+ghcr.io/nyrest/astrum-agent-runtime:latest
 ```
 
 Example tag:
@@ -22,7 +23,7 @@ Example tag:
 ghcr.io/nyrest/astrum-agent-runtime:20260503-1a2b3c4
 ```
 
-The workflow is also manually triggerable from GitHub Actions.
+The `latest` tag is a moving alias for the newest pushed image. It does not duplicate the image layers in GHCR; it only adds another tag/manifest reference to the same pushed package, so storage overhead is negligible metadata rather than another full image copy.
 
 ## Verify
 
