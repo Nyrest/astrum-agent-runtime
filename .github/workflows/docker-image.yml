@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
 
 env:
   IMAGE_NAME: astrum-agent-runtime
@@ -64,12 +65,15 @@ jobs:
       - name: Verify runtime
         run: docker run --rm "${{ steps.meta.outputs.image }}:verify" verify-runtime
 
-      - name: Push verified image
+      - name: Push verified image with attestations
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
+          provenance: mode=max
+          sbom: true
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}
@@ -81,3 +85,14 @@ jobs:
             org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.8.1
+        with:
+          cosign-release: 'v2.4.3'
+
+      - name: Sign image with cosign
+        env:
+          COSIGN_YES: true
+        run: |
+          cosign sign "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"

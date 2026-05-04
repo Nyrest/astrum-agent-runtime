@@ -9,15 +9,35 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 env:
   IMAGE_NAME: astrum-agent-runtime
 
 jobs:
-  verify:
-    name: Build and verify image
+  lint:
+    name: Lint Dockerfile
     runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+
+      - name: Upload hadolint results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-results.sarif
+          category: hadolint
+
+  scan:
+    name: Build and scan image
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,3 +57,19 @@ jobs:
 
       - name: Verify runtime
         run: docker run --rm "${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}" verify-runtime
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
