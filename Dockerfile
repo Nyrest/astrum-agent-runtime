@@ -7,6 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG NODE_MAJOR=24
 ARG OXIPNG_VERSION=10.1.1
 ARG HADOLINT_VERSION=2.13.1
+ARG XH_VERSION=0.25.3
 ARG WEBSOCAT_VERSION=1.14.1
 ARG BUN_INSTALL=/opt/bun
 ARG UV_INSTALL_DIR=/usr/local/bin
@@ -98,7 +99,6 @@ RUN printf '%s\n' \
         pipx \
         virtualenv \
         csvkit \
-        xh \
         jq \
         yq \
         ripgrep \
@@ -226,12 +226,14 @@ RUN set -eux; \
             aws_arch="x86_64"; \
             hadolint_arch="x86_64"; \
             supabase_arch="amd64"; \
+            xh_arch="x86_64-unknown-linux-musl"; \
             websocat_asset="websocat.x86_64-unknown-linux-musl"; \
             ;; \
         arm64) \
             aws_arch="aarch64"; \
             hadolint_arch="arm64"; \
             supabase_arch="arm64"; \
+            xh_arch="aarch64-unknown-linux-musl"; \
             websocat_asset="websocat.aarch64-unknown-linux-musl"; \
             ;; \
         *) \
@@ -251,9 +253,13 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends /tmp/supabase.deb; \
     rm -rf /var/lib/apt/lists/*; \
+    curl -fsSL -o /tmp/xh.tar.gz "https://github.com/ducaale/xh/releases/download/v${XH_VERSION}/xh-v${XH_VERSION}-${xh_arch}.tar.gz"; \
+    mkdir -p /tmp/xh; \
+    tar -xzf /tmp/xh.tar.gz -C /tmp/xh; \
+    install -m 0755 "/tmp/xh/xh-v${XH_VERSION}/${xh_arch}/xh" /usr/local/bin/xh; \
     curl -fsSL -o /usr/local/bin/websocat "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/${websocat_asset}"; \
     chmod +x /usr/local/bin/websocat; \
-    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh /tmp/supabase.deb
+    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh /tmp/supabase.deb /tmp/xh /tmp/xh.tar.gz
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv --version \
