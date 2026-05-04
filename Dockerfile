@@ -47,6 +47,7 @@ RUN printf '%s\n' \
     && sed -i 's/^# *zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen \
     && sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen \
+    && add-apt-repository -y multiverse \
     && install -d -m 0755 /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
@@ -87,15 +88,19 @@ RUN printf '%s\n' \
         gettext-base \
         moreutils \
         expect \
+        shellcheck \
+        shfmt \
         python3 \
         python3-pip \
         python3-venv \
         pipx \
         virtualenv \
+        csvkit \
         jq \
         yq \
         ripgrep \
         fd-find \
+        miller \
         aria2 \
         tmux \
         rsync \
@@ -107,6 +112,7 @@ RUN printf '%s\n' \
         tar \
         gzip \
         bzip2 \
+        unrar \
         rclone \
         openssh-client \
         sshpass \
@@ -148,6 +154,7 @@ RUN printf '%s\n' \
         ghostscript \
         ffmpeg \
         imagemagick \
+        libimage-exiftool-perl \
         libcairo2 \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
@@ -194,7 +201,12 @@ RUN curl -fsSL https://bun.sh/install | bash \
         typescript \
         pnpm \
         yarn \
-    && rm -rf /root/.bun/install/cache
+    && rm -rf /root/.bun/install/cache \
+    && npm install -g \
+        neonctl \
+        @googleworkspace/cli \
+        @larksuite/cli \
+    && npm cache clean --force
 
 RUN curl -fsSL -o /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp \
@@ -203,6 +215,62 @@ RUN curl -fsSL -o /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/release
     && curl -A "Mozilla/5.0" -fsSL -o /tmp/oxipng.deb "https://github.com/oxipng/oxipng/releases/download/v${OXIPNG_VERSION}/oxipng_${OXIPNG_VERSION}-1_$(dpkg --print-architecture).deb" \
     && dpkg -i /tmp/oxipng.deb \
     && rm -f /tmp/cloudflared.deb /tmp/oxipng.deb
+
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    case "${arch}" in \
+        amd64) \
+            aws_arch="x86_64"; \
+            hadolint_arch="x86_64"; \
+            supabase_arch="amd64"; \
+            xh_arch="x86_64"; \
+            websocat_arch="x86_64-unknown-linux-musl"; \
+            ;; \
+        arm64) \
+            aws_arch="aarch64"; \
+            hadolint_arch="arm64"; \
+            supabase_arch="arm64"; \
+            xh_arch="aarch64"; \
+            websocat_arch="aarch64-unknown-linux-musl"; \
+            ;; \
+        *) \
+            echo "Unsupported architecture: ${arch}" >&2; \
+            exit 1; \
+            ;; \
+    esac; \
+    github_asset_url() { \
+        repo="$1"; \
+        pattern="$2"; \
+        curl -fsSL -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${repo}/releases/latest" \
+            | jq -r --arg pattern "${pattern}" 'first(.assets[] | select(.name | test($pattern)) | .browser_download_url) // empty'; \
+    }; \
+    curl -fsSL -o /tmp/awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip"; \
+    unzip -q /tmp/awscliv2.zip -d /tmp; \
+    /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli; \
+    curl -fsSL -o /tmp/install-duckdb.sh https://install.duckdb.org; \
+    sh /tmp/install-duckdb.sh; \
+    ln -sf /root/.duckdb/cli/latest/duckdb /usr/local/bin/duckdb; \
+    curl -fsSL -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-${hadolint_arch}"; \
+    chmod +x /usr/local/bin/hadolint; \
+    supabase_url="$(github_asset_url supabase/cli "linux_${supabase_arch}\\.deb$")"; \
+    test -n "${supabase_url}"; \
+    curl -fsSL -o /tmp/supabase.deb "${supabase_url}"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends /tmp/supabase.deb; \
+    rm -rf /var/lib/apt/lists/*; \
+    xh_url="$(github_asset_url ducaale/xh "${xh_arch}.*linux-musl.*\\.tar\\.gz$")"; \
+    test -n "${xh_url}"; \
+    curl -fsSL -o /tmp/xh.tar.gz "${xh_url}"; \
+    mkdir -p /tmp/xh; \
+    tar -xzf /tmp/xh.tar.gz -C /tmp/xh; \
+    xh_bin="$(find /tmp/xh -type f -name xh | head -n 1)"; \
+    test -n "${xh_bin}"; \
+    install -m 0755 "${xh_bin}" /usr/local/bin/xh; \
+    websocat_url="$(github_asset_url vi/websocat "websocat.*${websocat_arch}$")"; \
+    test -n "${websocat_url}"; \
+    curl -fsSL -o /usr/local/bin/websocat "${websocat_url}"; \
+    chmod +x /usr/local/bin/websocat; \
+    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh /tmp/supabase.deb /tmp/xh /tmp/xh.tar.gz
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv --version \
@@ -223,6 +291,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
         pydantic \
         python-dotenv \
         toml \
+        duckdb \
         beautifulsoup4 \
         markdown \
         python-multipart \
@@ -236,6 +305,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
         pyarrow \
         tabulate \
         numpy \
+        ruff \
     && PIPBIN="$("${PYBIN}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("scripts"), "pip"))')" \
     && ln -sf "${PIPBIN}" /usr/local/bin/pip3 \
     && ln -sf /usr/local/bin/pip3 /usr/local/bin/pip \

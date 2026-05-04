@@ -111,17 +111,18 @@ Use a normal Docker network when the agent needs package downloads, GitHub, Verc
 - Timezone and locale: `Asia/Shanghai`, default `en_US.UTF-8`; `zh_CN.UTF-8` is generated for CJK compatibility.
 - Node.js 24 with npm.
 - Bun latest with global tools: `turbo`, `prettier`, `eslint`, `tsx`, `playwright`, `vercel`, `wrangler`, `gemini` from `@google/gemini-cli`, `typescript`, `pnpm`, `yarn`.
+- npm global CLIs: Neon CLI (`neon`, `neonctl`), Google Workspace CLI (`gws`), and Lark/Feishu CLI (`lark-cli`).
 - uv latest with Python 3.14 exposed as `python`, `python3`, and `python3.14`.
-- Python tooling and packages: `pip`, `pipx`, `virtualenv`, `setuptools`, `wheel`, `requests`, `httpx`, `pydantic`, `python-dotenv`, `toml`, `beautifulsoup4`, `markdown`, `python-multipart`, `pypdf`, `pymupdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx`, `pandas`, `pyarrow`, `tabulate`, `numpy`.
+- Python tooling and packages: `pip`, `pipx`, `virtualenv`, `setuptools`, `wheel`, `requests`, `httpx`, `pydantic`, `python-dotenv`, `toml`, `duckdb`, `beautifulsoup4`, `markdown`, `python-multipart`, `pypdf`, `pymupdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx`, `pandas`, `pyarrow`, `tabulate`, `numpy`, `ruff`.
 - Git tools: `git`, `gh`, `git-lfs`.
 - Build and SDK tools: `build-essential`, `cmake`, `ninja`, `pkg-config`, `clang`, `llvm`, Go SDK, `gdb`, `lldb`, `strace`, and related compile utilities.
 - Office/PDF tools: headless LibreOffice, `pandoc`, `poppler-utils`, `qpdf`, `ghostscript`.
 - Fonts: Noto CJK, Noto Color Emoji, Liberation, DejaVu.
-- Database clients: PostgreSQL, MySQL/MariaDB, Redis, SQLite.
-- Network tools: `dnsutils`, `iproute2`, `iputils-ping`, `netcat-openbsd`, `nmap`, `tcpdump`, `traceroute`, `whois`, `cloudflared`, `telnet`, `socat`, `openssh-client`, `sshpass`.
-- Text and shell tools: `gawk`, `grep`, `coreutils`, `moreutils`, `gettext-base`, `diffutils`, `patch`, `findutils`, `util-linux`, `procps`.
-- Common agent tools: `rg`, `fd`, `aria2`, `tmux`, `rsync`, `7z`, `zip`, `unzip`, `rclone`, `jq`, `yq`, `envsubst`, `timeout`, `flock`, `stdbuf`, `script`.
-- Multimedia tools: `ffmpeg`, `ffprobe`, `yt-dlp`, ImageMagick, `oxipng`.
+- Database clients: PostgreSQL, MySQL/MariaDB, Redis, SQLite, DuckDB CLI, Supabase CLI, and AWS CLI.
+- Network tools: `dnsutils`, `iproute2`, `iputils-ping`, `netcat-openbsd`, `nmap`, `tcpdump`, `traceroute`, `whois`, `cloudflared`, `telnet`, `socat`, `websocat`, `xh`, `openssh-client`, `sshpass`.
+- Text and shell tools: `gawk`, `grep`, `coreutils`, `moreutils`, `gettext-base`, `diffutils`, `patch`, `findutils`, `util-linux`, `procps`, `shellcheck`, `shfmt`, `hadolint`.
+- Common agent tools: `rg`, `fd`, `aria2`, `tmux`, `rsync`, `7z`, `zip`, `unzip`, `unrar`, `rclone`, `jq`, `yq`, `envsubst`, `timeout`, `flock`, `stdbuf`, `script`, `csvkit`, Miller (`mlr`).
+- Multimedia tools: `ffmpeg`, `ffprobe`, `yt-dlp`, ImageMagick, `exiftool`, `oxipng`.
 - Playwright CLI is installed, but browser binaries are not preinstalled. Install a browser in derived images or containers only when needed.
 
 ## Size Notes

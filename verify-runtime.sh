@@ -7,13 +7,13 @@ date
 locale | grep 'LANG=en_US.UTF-8'
 
 echo "== base commands =="
-for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip rclone ffmpeg ffprobe yt-dlp convert identify oxipng psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd; do
+for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
 
 echo "== network and text tools =="
-for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared awk gawk grep envsubst diff patch; do
+for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared xh websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws supabase neon neonctl gws lark-cli sshpass; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
@@ -44,6 +44,7 @@ modules = [
     "pydantic",
     "dotenv",
     "toml",
+    "duckdb",
     "bs4",
     "markdown",
     "multipart",
