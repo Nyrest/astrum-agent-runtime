@@ -18,8 +18,21 @@ hermes setup terminal
 - Use `ghcr.io/nyrest/astrum-agent-runtime:latest` as the Docker image.
 
 ### 3. Manual Entry (Optional)
+To mirror the production environment manually:
+
 ```bash
-docker run --rm -it -v "$PWD:/workspace" ghcr.io/nyrest/astrum-agent-runtime:latest
+docker run --rm -it \
+  -v "$HOME/.hermes/sandboxes/docker/default/home:/root" \
+  -v "$HOME/.hermes/sandboxes/docker/default/workspace:/workspace" \
+  ghcr.io/nyrest/astrum-agent-runtime:latest
+```
+
+*On Windows (PowerShell):*
+```powershell
+docker run --rm -it `
+  -v "${HOME}/.hermes/sandboxes/docker/default/home:/root" `
+  -v "${HOME}/.hermes/sandboxes/docker/default/workspace:/workspace" `
+  ghcr.io/nyrest/astrum-agent-runtime:latest
 ```
 
 ## 📦 Pre-installed Packages
@@ -50,23 +63,12 @@ Optimized for the [Hermes Agent](https://github.com/nyrest/hermes) Docker backen
 terminal:
   backend: docker
   docker_image: ghcr.io/nyrest/astrum-agent-runtime:latest
-  docker_mount_cwd_to_workspace: true
-  docker_volumes:
-    - "/home/user/.hermes/cache/documents:/output"
-  container_cpu: 4
-  container_memory: 8192
-  container_persistent: true
   docker_forward_env:
     - GITHUB_TOKEN
     - GEMINI_API_KEY
     - OPENAI_API_KEY
     - ANTHROPIC_API_KEY
 ```
-
-### Path Conventions
-- `/workspace`: Default working directory (mapped to your project).
-- `/output`: Recommended mount point for agent-generated exports.
-- `/cache`: Shared cache directory.
 
 ## 🔑 Environment Variables
 
