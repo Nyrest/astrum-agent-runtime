@@ -46,8 +46,8 @@ This image includes a comprehensive suite of tools categorized for agentic tasks
 | **Web & API CLIs** | `vercel`, `wrangler` (Cloudflare), `gemini` (Google), `gws` (Google Workspace), `lark-cli` (Feishu) |
 | **Python Libraries** | `requests`, `httpx`, `pydantic`, `pandas`, `numpy`, `beautifulsoup4`, `ruff`, `duckdb` |
 | **Document Processing** | LibreOffice (Headless), `pandoc`, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
-| **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)**, Supabase CLI |
-| **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, `xh`, `websocat`, `socat`, `sshpass` |
+| **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)** |
+| **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, **HTTPie (`http`)**, `websocat`, `socat`, `sshpass` |
 | **Cloud & DevOps** | `aws-cli`, `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
 | **Multimedia** | `ffmpeg`, `yt-dlp`, ImageMagick, `exiftool`, `oxipng` |
 | **Text & Data Utils** | `jq`, `yq`, `rg` (ripgrep), `fd`, `mlr` (miller), `csvkit`, `tmux` |

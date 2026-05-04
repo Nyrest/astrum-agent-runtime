@@ -13,7 +13,7 @@ for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2
 done
 
 echo "== network and text tools =="
-for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared xh websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws supabase neon neonctl gws lark-cli sshpass; do
+for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared http websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws neon neonctl gws lark-cli sshpass; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
