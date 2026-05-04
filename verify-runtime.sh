@@ -7,7 +7,7 @@ date
 locale | grep 'LANG=en_US.UTF-8'
 
 echo "== base commands =="
-for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd; do
+for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd officecli; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
