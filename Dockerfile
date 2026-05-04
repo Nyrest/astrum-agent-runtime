@@ -288,6 +288,15 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && ln -sf /usr/local/bin/pip3 /usr/local/bin/pip \
     && uv cache clean
 
+RUN set -eux; \
+    export OFFICECLI_DIR="/usr/local/bin"; \
+    curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh | bash; \
+    # Symlink into /usr/local/bin so it's always in PATH regardless of HOME
+    if [ -f /root/.local/bin/officecli ]; then \
+        ln -sf /root/.local/bin/officecli /usr/local/bin/officecli; \
+    fi; \
+    officecli --version
+
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
     && fc-cache -f \

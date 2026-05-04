@@ -45,7 +45,7 @@ This image includes a comprehensive suite of tools categorized for agentic tasks
 | **Package Managers** | `npm`, `pnpm`, `yarn`, `bun`, `uv`, `pip`, `pipx` |
 | **Web & API CLIs** | `vercel`, `wrangler` (Cloudflare), `gemini` (Google), `gws` (Google Workspace), `lark-cli` (Feishu) |
 | **Python Libraries** | `requests`, `httpx`, `pydantic`, `pandas`, `numpy`, `beautifulsoup4`, `ruff`, `duckdb` |
-| **Document Processing** | LibreOffice (Headless), `pandoc`, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
+| **Document Processing** | LibreOffice (Headless), `pandoc`, **`officecli`**, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
 | **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)** |
 | **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, **HTTPie (`http`)**, `websocat`, `socat`, `sshpass` |
 | **Cloud & DevOps** | `aws-cli`, `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
