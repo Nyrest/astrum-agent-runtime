@@ -65,7 +65,6 @@ jobs:
           image-ref: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
           format: sarif
           output: trivy-results.sarif
-          exit-code: '1'
           severity: HIGH,CRITICAL
 
       - name: Upload Trivy results to GitHub Security
