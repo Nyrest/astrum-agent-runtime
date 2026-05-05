@@ -33,9 +33,9 @@ command -v gofmt >/dev/null
 printf '%-14s %s\n' "gofmt" "$(command -v gofmt)"
 
 echo "== python =="
-python --version | grep 'Python 3.14'
-python3 --version | grep 'Python 3.14'
-python3.14 --version | grep 'Python 3.14'
+python --version | grep 'Python 3.13'
+python3 --version | grep 'Python 3.13'
+python3.13 --version | grep 'Python 3.13'
 pip --version
 python - <<'PY'
 modules = [

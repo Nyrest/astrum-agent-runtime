@@ -92,11 +92,6 @@ RUN printf '%s\n' \
         expect \
         shellcheck \
         shfmt \
-        python3 \
-        python3-pip \
-        python3-venv \
-        pipx \
-        virtualenv \
         csvkit \
         httpie \
         jq \
@@ -251,10 +246,10 @@ RUN set -eux; \
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv --version \
-    && uv python install 3.14 \
-    && uv venv "${PYTHON_VENV}" --python 3.14 --seed \
+    && uv python install 3.13 \
+    && uv venv "${PYTHON_VENV}" --python 3.13 --seed \
     && PYBIN="${PYTHON_VENV}/bin/python" \
-    && ln -sf "${PYBIN}" /usr/local/bin/python3.14 \
+    && ln -sf "${PYBIN}" /usr/local/bin/python3.13 \
     && ln -sf "${PYBIN}" /usr/local/bin/python3 \
     && ln -sf "${PYBIN}" /usr/local/bin/python \
     && uv pip install --python "${PYTHON_VENV}" \
