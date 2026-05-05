@@ -58,6 +58,7 @@ This image includes a comprehensive suite of tools categorized for agentic tasks
 | **Build Essentials** | `gcc`, `g++`, `clang`, `cmake`, `ninja`, `make`, `gdb`, `lldb`, `strace` |
 | **Compression** | `zip`, `unzip`, `7z`, `tar`, `zstd`, `unrar` |
 | **Fonts & I18n** | Noto CJK (Chinese/Japanese/Korean), Noto Color Emoji, Liberation, DejaVu |
+| **LaTeX & Academic** | `latexmk`, `biber`, `chktex`, `lualatex`, `xelatex`, `pdflatex`, mermaid-cli (`mmdc`) |
 
 ## 🤖 Hermes Agent Configuration
 
