@@ -147,6 +147,31 @@ RUN printf '%s\n' \
         fonts-liberation \
         fonts-dejavu \
         fontconfig \
+        # LaTeX / academic paper compilation
+        latexmk \
+        biber \
+        chktex \
+        lacheck \
+        python3-pygments \
+        lmodern \
+        tex-gyre \
+        texlive-latex-base \
+        texlive-latex-recommended \
+        texlive-latex-extra \
+        texlive-luatex \
+        texlive-xetex \
+        texlive-fonts-recommended \
+        texlive-fonts-extra \
+        texlive-font-utils \
+        texlive-pictures \
+        texlive-pstricks \
+        texlive-science \
+        texlive-publishers \
+        texlive-bibtex-extra \
+        texlive-extra-utils \
+        texlive-lang-cjk \
+        texlive-lang-chinese \
+        texlive-lang-japanese \
         poppler-utils \
         qpdf \
         ghostscript \
@@ -195,6 +220,7 @@ RUN curl -fsSL https://bun.sh/install | bash \
         playwright \
         vercel \
         wrangler \
+        @mermaid-js/mermaid-cli \
         @google/gemini-cli \
         typescript \
         pnpm \
