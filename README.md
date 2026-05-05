@@ -45,7 +45,7 @@ This image includes a comprehensive suite of tools categorized for agentic tasks
 
 | Category | Key Tools & Packages |
 | :--- | :--- |
-| **Runtimes** | Node.js 24, Python 3.14 (uv), Bun, Go SDK, Java (JRE Headless) |
+| **Runtimes** | Node.js 24, Python 3.13 (uv), Bun, Go SDK, Java (JRE Headless) |
 | **Package Managers** | `npm`, `pnpm`, `yarn`, `bun`, `uv`, `pip`, `pipx` |
 | **Web & API CLIs** | `vercel`, `wrangler` (Cloudflare), `gemini` (Google), `gws` (Google Workspace), `lark-cli` (Feishu) |
 | **Python Libraries** | `requests`, `httpx`, `pydantic`, `pandas`, `numpy`, `beautifulsoup4`, `ruff`, `duckdb` |
