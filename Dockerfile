@@ -172,6 +172,9 @@ RUN printf '%s\n' \
         texlive-lang-cjk \
         texlive-lang-chinese \
         texlive-lang-japanese \
+        fonts-cmu \
+        fonts-stix \
+        fonts-texgyre \
         poppler-utils \
         qpdf \
         ghostscript \
@@ -303,6 +306,15 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
         pyarrow \
         tabulate \
         numpy \
+        # Data science / ML / viz
+        jupyterlab \
+        notebook \
+        ipykernel \
+        matplotlib \
+        seaborn \
+        scipy \
+        pillow \
+        imageio \
         ruff \
     && PIPBIN="$("${PYBIN}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("scripts"), "pip"))')" \
     && ln -sf "${PIPBIN}" /usr/local/bin/pip3 \

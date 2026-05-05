@@ -57,8 +57,9 @@ This image includes a comprehensive suite of tools categorized for agentic tasks
 | **Text & Data Utils** | `jq`, `yq`, `rg` (ripgrep), `fd`, `mlr` (miller), `csvkit`, `tmux` |
 | **Build Essentials** | `gcc`, `g++`, `clang`, `cmake`, `ninja`, `make`, `gdb`, `lldb`, `strace` |
 | **Compression** | `zip`, `unzip`, `7z`, `tar`, `zstd`, `unrar` |
-| **Fonts & I18n** | Noto CJK (Chinese/Japanese/Korean), Noto Color Emoji, Liberation, DejaVu |
+| **Fonts & I18n** | Noto CJK (Chinese/Japanese/Korean), Noto Color Emoji, Liberation, DejaVu, CMU, STIX, TeX Gyre |
 | **LaTeX & Academic** | `latexmk`, `biber`, `chktex`, `lualatex`, `xelatex`, `pdflatex`, mermaid-cli (`mmdc`) |
+| **Data Science & Viz** | JupyterLab, Notebook, matplotlib, seaborn, scipy, pillow, imageio |
 
 ## 🤖 Hermes Agent Configuration
 
