@@ -6,6 +6,11 @@ test "$(cat /etc/timezone)" = "Asia/Shanghai"
 date
 locale | grep 'LANG=en_US.UTF-8'
 
+echo "== academic fonts =="
+for fp in /usr/share/fonts/truetype/cmu /usr/share/fonts/truetype/stix /usr/share/fonts/truetype/tex-gyre; do
+  test -d "$fp" && printf '%-20s %s\n' "$(basename $fp)" "installed"
+done
+
 echo "== base commands =="
 for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd officecli mmdc; do
   command -v "$cmd" >/dev/null
@@ -58,6 +63,14 @@ modules = [
     "pyarrow",
     "tabulate",
     "numpy",
+    "jupyterlab",
+    "notebook",
+    "ipykernel",
+    "matplotlib",
+    "seaborn",
+    "scipy",
+    "PIL",
+    "imageio",
 ]
 for module in modules:
     __import__(module)
