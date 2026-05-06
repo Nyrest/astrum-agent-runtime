@@ -1,7 +1,7 @@
 # Astrum Agent Runtime
 
 [![Build](https://github.com/Nyrest/astrum-agent-runtime/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Nyrest/astrum-agent-runtime/actions/workflows/docker-image.yml)
-[![Image Size](https://img.shields.io/badge/image%20size-1.9%20GB-blue?logo=docker)](https://github.com/Nyrest/astrum-agent-runtime/pkgs/container/astrum-agent-runtime)
+[![Image Size](https://img.shields.io/badge/image%20size-3.72%20GiB-blue?logo=docker)](https://github.com/Nyrest/astrum-agent-runtime/pkgs/container/astrum-agent-runtime)
 [![License](https://img.shields.io/github/license/Nyrest/astrum-agent-runtime)](https://github.com/Nyrest/astrum-agent-runtime/blob/main/LICENSE)
 
 A powerhouse Ubuntu 24.04 Docker image meticulously optimized for AI agents, developers, and automation workflows. It provides a "batteries-included" environment for the **Hermes Agent** and other Docker-based agent backends.
