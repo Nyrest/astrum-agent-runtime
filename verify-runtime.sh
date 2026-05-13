@@ -79,9 +79,10 @@ PY
 case "$flavor" in
   full)
     echo "== academic fonts =="
-    for fp in /usr/share/fonts/truetype/cmu /usr/share/fonts/truetype/stix /usr/share/fonts/truetype/tex-gyre; do
-      test -d "$fp"
-      printf '%-20s %s\n' "$(basename "$fp")" "installed"
+    command -v fc-list >/dev/null
+    for pattern in 'CMU' 'STIX' 'TeX Gyre'; do
+      fc-list | grep -m1 "$pattern"
+      printf '%-20s %s\n' "$pattern" "installed"
     done
 
     echo "== headless office and browser tooling =="
@@ -94,13 +95,18 @@ case "$flavor" in
     ;;
   lite)
     echo "== lite exclusions =="
-    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex pygmentize; do
+    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex; do
       if command -v "$cmd" >/dev/null; then
         echo "unexpected command present in lite image: $cmd" >&2
         exit 1
       fi
       printf '%-14s %s\n' "$cmd" "absent"
     done
+    if command -v fc-list >/dev/null; then
+      echo "unexpected fontconfig tooling present in lite image" >&2
+      exit 1
+    fi
+    printf '%-14s %s\n' "fc-list" "absent"
     playwright --version
     ;;
   *)
