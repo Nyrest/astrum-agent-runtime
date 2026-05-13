@@ -87,7 +87,6 @@ terminal:
   backend: docker
   docker_image: ghcr.io/nyrest/astrum-agent-runtime:latest
   docker_forward_env:
-    - TZ
     - GITHUB_TOKEN
     - GEMINI_API_KEY
     - OPENAI_API_KEY

@@ -80,10 +80,12 @@ case "$flavor" in
   full)
     echo "== academic fonts =="
     command -v fc-list >/dev/null
+    font_index="$(mktemp)"
+    fc-list >"$font_index"
     for pattern in 'CMU' 'STIX' 'TeX Gyre'; do
       match_file="$(mktemp)"
-      if ! grep -F -m1 "$pattern" < <(fc-list) >"$match_file"; then
-        rm -f "$match_file"
+      if ! grep -F -m1 "$pattern" "$font_index" >"$match_file"; then
+        rm -f "$match_file" "$font_index"
         echo "missing academic font: $pattern" >&2
         exit 1
       fi
@@ -91,6 +93,7 @@ case "$flavor" in
       rm -f "$match_file"
       printf '%-20s %s\n' "$pattern" "installed"
     done
+    rm -f "$font_index"
 
     echo "== headless office and browser tooling =="
     for cmd in libreoffice latexmk biber xelatex lualatex pdflatex pygmentize; do
