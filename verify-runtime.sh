@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+flavor="${ASTRUM_RUNTIME_FLAVOR:-full}"
+
 echo "== locale =="
 date
 locale | grep 'LANG=en_US.UTF-8'
 
-echo "== academic fonts =="
-for fp in /usr/share/fonts/truetype/cmu /usr/share/fonts/truetype/stix /usr/share/fonts/truetype/tex-gyre; do
-  test -d "$fp" && printf '%-20s %s\n' "$(basename $fp)" "installed"
-done
+echo "== runtime flavor =="
+printf '%s\n' "$flavor"
 
 echo "== base commands =="
-for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd officecli mmdc; do
+for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 pandoc jq yq fd officecli mmdc; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
 
 echo "== network and text tools =="
-for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared http websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws neon neonctl gws lark-cli sshpass latexmk biber xelatex lualatex pdflatex pygmentize; do
+for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared http websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws neon neonctl gws lark-cli sshpass; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
@@ -76,8 +76,37 @@ for module in modules:
 print("python imports ok")
 PY
 
-echo "== headless office and browser tooling =="
-libreoffice --headless --version
-playwright --version
+case "$flavor" in
+  full)
+    echo "== academic fonts =="
+    for fp in /usr/share/fonts/truetype/cmu /usr/share/fonts/truetype/stix /usr/share/fonts/truetype/tex-gyre; do
+      test -d "$fp"
+      printf '%-20s %s\n' "$(basename "$fp")" "installed"
+    done
+
+    echo "== headless office and browser tooling =="
+    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex pygmentize; do
+      command -v "$cmd" >/dev/null
+      printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
+    done
+    libreoffice --headless --version
+    playwright --version
+    ;;
+  lite)
+    echo "== lite exclusions =="
+    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex pygmentize; do
+      if command -v "$cmd" >/dev/null; then
+        echo "unexpected command present in lite image: $cmd" >&2
+        exit 1
+      fi
+      printf '%-14s %s\n' "$cmd" "absent"
+    done
+    playwright --version
+    ;;
+  *)
+    echo "Unsupported ASTRUM_RUNTIME_FLAVOR: $flavor" >&2
+    exit 1
+    ;;
+esac
 
 echo "runtime verification passed"

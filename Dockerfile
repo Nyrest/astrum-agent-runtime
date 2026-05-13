@@ -8,6 +8,7 @@ ARG NODE_MAJOR=24
 ARG OXIPNG_VERSION=10.1.1
 ARG HADOLINT_VERSION=2.13.1
 ARG WEBSOCAT_VERSION=1.14.1
+ARG RUNTIME_FLAVOR=full
 ARG BUN_INSTALL=/opt/bun
 ARG UV_INSTALL_DIR=/usr/local/bin
 ARG UV_PYTHON_INSTALL_DIR=/opt/uv-python
@@ -15,6 +16,7 @@ ARG PYTHON_VENV=/opt/python
 
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
+    ASTRUM_RUNTIME_FLAVOR=${RUNTIME_FLAVOR} \
     BUN_INSTALL=${BUN_INSTALL} \
     UV_INSTALL_DIR=${UV_INSTALL_DIR} \
     UV_PYTHON_INSTALL_DIR=${UV_PYTHON_INSTALL_DIR} \
@@ -52,157 +54,27 @@ RUN printf '%s\n' \
     && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        nodejs \
-        git \
-        git-lfs \
-        gh \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        autoconf \
-        automake \
-        libtool \
-        make \
-        gcc \
-        g++ \
-        clang \
-        llvm \
-        golang-go \
-        gdb \
-        lldb \
-        strace \
-        file \
-        patch \
-        diffutils \
-        grep \
-        gawk \
-        findutils \
-        coreutils \
-        util-linux \
-        procps \
-        gettext-base \
-        moreutils \
-        expect \
-        shellcheck \
-        shfmt \
-        csvkit \
-        httpie \
-        jq \
-        yq \
-        ripgrep \
-        fd-find \
-        miller \
-        aria2 \
-        tmux \
-        rsync \
-        p7zip-full \
-        zip \
-        unzip \
-        xz-utils \
-        zstd \
-        tar \
-        gzip \
-        bzip2 \
-        unrar \
-        rclone \
-        openssh-client \
-        sshpass \
-        netcat-openbsd \
-        dnsutils \
-        iputils-ping \
-        iproute2 \
-        nmap \
-        tcpdump \
-        traceroute \
-        whois \
-        telnet \
-        socat \
-        less \
-        vim-tiny \
-        nano \
-        tree \
-        htop \
-        postgresql-client \
-        default-mysql-client \
-        redis-tools \
-        sqlite3 \
-        libreoffice \
-        libreoffice-writer \
-        libreoffice-calc \
-        libreoffice-impress \
-        libreoffice-java-common \
-        default-jre-headless \
-        pandoc \
-        fonts-noto-cjk \
-        fonts-noto-cjk-extra \
-        fonts-noto-color-emoji \
-        fonts-noto-core \
-        fonts-liberation \
-        fonts-dejavu \
-        fontconfig \
-        # LaTeX / academic paper compilation
-        latexmk \
-        biber \
-        chktex \
-        lacheck \
-        python3-pygments \
-        lmodern \
-        tex-gyre \
-        texlive-latex-base \
-        texlive-latex-recommended \
-        texlive-latex-extra \
-        texlive-luatex \
-        texlive-xetex \
-        texlive-fonts-recommended \
-        texlive-fonts-extra \
-        texlive-font-utils \
-        texlive-pictures \
-        texlive-pstricks \
-        texlive-science \
-        texlive-publishers \
-        texlive-bibtex-extra \
-        texlive-extra-utils \
-        texlive-lang-cjk \
-        texlive-lang-chinese \
-        texlive-lang-japanese \
-        fonts-cmu \
-        fonts-stix \
-        fonts-texgyre \
-        poppler-utils \
-        qpdf \
-        ghostscript \
-        ffmpeg \
-        imagemagick \
-        libimage-exiftool-perl \
-        libcairo2 \
-        libpango-1.0-0 \
-        libpangocairo-1.0-0 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libnss3 \
-        libnspr4 \
-        libx11-6 \
-        libx11-xcb1 \
-        libxcb1 \
-        libxcomposite1 \
-        libxcursor1 \
-        libxdamage1 \
-        libxext6 \
-        libxfixes3 \
-        libxi6 \
-        libxrandr2 \
-        libxrender1 \
-        libxss1 \
-        libxtst6 \
-        libgbm1 \
-        libgtk-3-0 \
-        libdrm2 \
-        libasound2t64 \
-        libdbus-1-3 \
-        libatspi2.0-0 \
-        libxkbcommon0 \
+    && common_packages=( \
+        nodejs git git-lfs gh build-essential cmake ninja-build pkg-config autoconf automake libtool make gcc g++ clang llvm golang-go \
+        gdb lldb strace file patch diffutils grep gawk findutils coreutils util-linux procps gettext-base moreutils expect shellcheck \
+        shfmt csvkit httpie jq yq ripgrep fd-find miller aria2 tmux rsync p7zip-full zip unzip xz-utils zstd tar gzip bzip2 unrar rclone \
+        openssh-client sshpass netcat-openbsd dnsutils iputils-ping iproute2 nmap tcpdump traceroute whois telnet socat less vim-tiny nano \
+        tree htop postgresql-client default-mysql-client redis-tools sqlite3 pandoc poppler-utils qpdf ghostscript ffmpeg imagemagick \
+        libimage-exiftool-perl libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libatk1.0-0 libatk-bridge2.0-0 libnss3 libnspr4 libx11-6 \
+        libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+        libgbm1 libgtk-3-0 libdrm2 libasound2t64 libdbus-1-3 libatspi2.0-0 libxkbcommon0 \
+    ) \
+    && full_only_packages=( \
+        libreoffice libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-java-common default-jre-headless \
+        fonts-noto-cjk fonts-noto-cjk-extra fonts-noto-color-emoji fonts-noto-core fonts-liberation fonts-dejavu fontconfig \
+        latexmk biber chktex lacheck python3-pygments lmodern tex-gyre texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+        texlive-luatex texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-font-utils texlive-pictures texlive-pstricks \
+        texlive-science texlive-publishers texlive-bibtex-extra texlive-extra-utils texlive-lang-cjk texlive-lang-chinese texlive-lang-japanese \
+        fonts-cmu fonts-stix fonts-texgyre \
+    ) \
+    && packages=( "${common_packages[@]}" ) \
+    && if [ "${RUNTIME_FLAVOR}" = "full" ]; then packages+=( "${full_only_packages[@]}" ); fi \
+    && apt-get install -y --no-install-recommends "${packages[@]}" \
     && git lfs install --system \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && apt-get clean \
@@ -327,7 +199,7 @@ RUN set -eux; \
 
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
-    && fc-cache -f \
+    && if command -v fc-cache >/dev/null; then fc-cache -f; fi \
     && mkdir -p \
         /workspace \
         /output \
