@@ -56,7 +56,7 @@ expect_exact prettier "$(prettier --version | trim_version)" "3.8.3"
 expect_exact eslint "$(eslint --version | trim_version)" "10.3.0"
 expect_exact tsx "$(tsx --version 2>/dev/null | awk 'NR==1 {print $2}' | trim_version)" "4.21.0"
 expect_exact playwright "$(playwright --version | awk '{print $2}' | trim_version)" "1.60.0"
-expect_exact vercel "$(vercel --version | awk 'NR==1 {print $2}' | trim_version)" "53.4.0"
+expect_exact vercel "$(vercel --version 2>/dev/null | trim_version)" "53.4.0"
 expect_exact wrangler "$(wrangler --version | awk '{print $2}' | trim_version)" "4.90.1"
 expect_exact gemini "$(gemini --version | awk '{print $NF}' | trim_version)" "0.42.0"
 
