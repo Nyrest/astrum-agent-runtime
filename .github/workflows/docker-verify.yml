@@ -37,8 +37,12 @@ jobs:
           category: hadolint
 
   scan:
-    name: Build and scan image
+    name: Build and scan ${{ matrix.flavor }} image
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [full, lite]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,25 +55,27 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          build-args: |
+            RUNTIME_FLAVOR=${{ matrix.flavor }}
           load: true
-          tags: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.flavor }}
+          cache-from: type=gha,scope=pr-${{ matrix.flavor }}
+          cache-to: type=gha,mode=max,scope=pr-${{ matrix.flavor }}
 
       - name: Verify runtime
-        run: docker run --rm "${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}" verify-runtime
+        run: docker run --rm "${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.flavor }}" verify-runtime
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
+          image-ref: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.flavor }}
           format: sarif
-          output: trivy-results.sarif
+          output: trivy-results-${{ matrix.flavor }}.sarif
           severity: HIGH,CRITICAL
 
       - name: Upload Trivy results to GitHub Security
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-results.sarif
-          category: trivy
+          sarif_file: trivy-results-${{ matrix.flavor }}.sarif
+          category: trivy-${{ matrix.flavor }}
