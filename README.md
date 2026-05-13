@@ -70,6 +70,7 @@ terminal:
   backend: docker
   docker_image: ghcr.io/nyrest/astrum-agent-runtime:latest
   docker_forward_env:
+    - TZ
     - GITHUB_TOKEN
     - GEMINI_API_KEY
     - OPENAI_API_KEY
@@ -90,8 +91,7 @@ Common variables to forward for specific use cases:
 ## 🛠 Technical Details
 
 - **Base Image:** `ubuntu:24.04`
-- **Timezone:** `Asia/Shanghai`
-- **Locales:** `en_US.UTF-8` (Default), `zh_CN.UTF-8` (Supported)
+- **Locales:** `en_US.UTF-8`
 - **Workdir:** `/workspace`
 - **Browsers:** Playwright is installed, but browser binaries (Chromium/Firefox) are **not** pre-included to keep image size manageable. Use `playwright install` if needed at runtime.
 - **License:** [MIT](LICENSE)
