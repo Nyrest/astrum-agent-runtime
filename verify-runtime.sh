@@ -45,7 +45,7 @@ expect_exact uv "$(uv --version | awk '{print $2}' | trim_version)" "${UV_VERSIO
 expect_exact python "$(python --version 2>&1 | awk '{print $2}' | cut -d. -f1-2)" "${PYTHON_VERSION}"
 expect_exact yt-dlp "$(yt-dlp --version | trim_version)" "${YT_DLP_VERSION}"
 expect_exact cloudflared "$(cloudflared --version | awk 'NR==1 {print $3}' | trim_version)" "${CLOUDFLARED_VERSION}"
-expect_exact duckdb "$(duckdb --version | awk '{print $NF}' | trim_version)" "${DUCKDB_VERSION}"
+expect_exact duckdb "$(duckdb --version | awk '{print $1}' | trim_version)" "${DUCKDB_VERSION}"
 expect_exact hadolint "$(hadolint --version | awk '{print $NF}' | trim_version)" "${HADOLINT_VERSION}"
 expect_exact websocat "$(websocat --version | awk '{print $2}' | trim_version)" "${WEBSOCAT_VERSION}"
 expect_exact oxipng "$(oxipng --version | awk '{print $2}' | trim_version)" "${OXIPNG_VERSION}"
