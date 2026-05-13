@@ -81,7 +81,14 @@ case "$flavor" in
     echo "== academic fonts =="
     command -v fc-list >/dev/null
     for pattern in 'CMU' 'STIX' 'TeX Gyre'; do
-      fc-list | grep -m1 "$pattern"
+      match_file="$(mktemp)"
+      if ! grep -F -m1 "$pattern" < <(fc-list) >"$match_file"; then
+        rm -f "$match_file"
+        echo "missing academic font: $pattern" >&2
+        exit 1
+      fi
+      cat "$match_file"
+      rm -f "$match_file"
       printf '%-20s %s\n' "$pattern" "installed"
     done
 
