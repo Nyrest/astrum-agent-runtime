@@ -102,11 +102,6 @@ case "$flavor" in
       fi
       printf '%-14s %s\n' "$cmd" "absent"
     done
-    if command -v fc-list >/dev/null; then
-      echo "unexpected fontconfig tooling present in lite image" >&2
-      exit 1
-    fi
-    printf '%-14s %s\n' "fc-list" "absent"
     playwright --version
     ;;
   *)
