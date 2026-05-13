@@ -5,6 +5,8 @@ VERSIONS_DIR=/usr/local/share/astrum-agent-runtime/versions
 # shellcheck disable=SC1091
 source "${VERSIONS_DIR}/tool-versions.env"
 
+flavor="${ASTRUM_RUNTIME_FLAVOR:-full}"
+
 trim_version() {
   sed -E 's/^v//; s/^Version[[:space:]]+//; s/ .*$//'
 }
@@ -18,13 +20,15 @@ expect_exact() {
   printf '%-18s %s\n' "${name}" "${actual}"
 }
 
-echo "== locale and timezone =="
-test "$(cat /etc/timezone)" = "Asia/Shanghai"
+echo "== locale =="
 date
 locale | grep 'LANG=en_US.UTF-8'
 
+echo "== runtime flavor =="
+printf '%s\n' "$flavor"
+
 echo "== base commands =="
-for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 libreoffice pandoc jq yq fd; do
+for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 pandoc jq yq fd officecli mmdc; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
@@ -87,8 +91,48 @@ for cmd in turbo prettier eslint tsx playwright vercel wrangler gemini tsc pnpm 
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
 
-echo "== headless office and browser tooling =="
-libreoffice --headless --version
-playwright --version
+case "$flavor" in
+  full)
+    echo "== academic fonts =="
+    command -v fc-list >/dev/null
+    font_index="$(mktemp)"
+    fc-list >"$font_index"
+    for pattern in 'CMU' 'STIX' 'TeX Gyre'; do
+      match_file="$(mktemp)"
+      if ! grep -F -m1 "$pattern" "$font_index" >"$match_file"; then
+        rm -f "$match_file" "$font_index"
+        echo "missing academic font: $pattern" >&2
+        exit 1
+      fi
+      cat "$match_file"
+      rm -f "$match_file"
+      printf '%-20s %s\n' "$pattern" "installed"
+    done
+    rm -f "$font_index"
+
+    echo "== headless office and browser tooling =="
+    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex pygmentize; do
+      command -v "$cmd" >/dev/null
+      printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
+    done
+    libreoffice --headless --version
+    playwright --version
+    ;;
+  lite)
+    echo "== lite exclusions =="
+    for cmd in libreoffice latexmk biber xelatex lualatex pdflatex; do
+      if command -v "$cmd" >/dev/null; then
+        echo "unexpected command present in lite image: $cmd" >&2
+        exit 1
+      fi
+      printf '%-14s %s\n' "$cmd" "absent"
+    done
+    playwright --version
+    ;;
+  *)
+    echo "Unsupported ASTRUM_RUNTIME_FLAVOR: $flavor" >&2
+    exit 1
+    ;;
+esac
 
 echo "runtime verification passed"

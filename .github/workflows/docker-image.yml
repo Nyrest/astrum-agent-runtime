@@ -17,8 +17,12 @@ env:
 
 jobs:
   build:
-    name: Build and push image
+    name: Build and push ${{ matrix.flavor }} image
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [full, lite]
 
     steps:
       - name: Checkout
@@ -29,13 +33,31 @@ jobs:
         shell: bash
         run: |
           owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          date_tag="$(TZ=Asia/Shanghai date +'%Y%m%d')"
+          date_tag="$(date -u +'%Y%m%d')"
           short_sha="${GITHUB_SHA::7}"
+          image="ghcr.io/${owner}/${IMAGE_NAME}"
+          version_tag="${date_tag}-${short_sha}"
 
-          echo "image=ghcr.io/${owner}/${IMAGE_NAME}" >> "${GITHUB_OUTPUT}"
-          echo "tag=${date_tag}-${short_sha}" >> "${GITHUB_OUTPUT}"
-          echo "candidate=verify-${short_sha}" >> "${GITHUB_OUTPUT}"
-          echo "latest=latest" >> "${GITHUB_OUTPUT}"
+          if [ "${{ matrix.flavor }}" = "full" ]; then
+            stable_tags=$'latest\nfull'
+          else
+            stable_tags='lite'
+          fi
+
+          {
+            echo "image=${image}"
+            echo "version_tag=${version_tag}"
+            echo 'stable_tags<<EOF'
+            printf '%s\n' "${stable_tags}"
+            echo 'EOF'
+            echo 'push_tags<<EOF'
+            while IFS= read -r stable_tag; do
+              [ -n "${stable_tag}" ] || continue
+              printf '%s:%s\n' "${image}" "${stable_tag}"
+            done <<< "${stable_tags}"
+            printf '%s:%s-%s\n' "${image}" "${{ matrix.flavor }}" "${version_tag}"
+            echo 'EOF'
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
@@ -47,44 +69,56 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push candidate image with provenance and SBOM
+      - name: Build and push ${{ matrix.flavor }} candidate with attestations
         id: push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: .
           file: ./Dockerfile
+          build-args: |
+            RUNTIME_FLAVOR=${{ matrix.flavor }}
           push: true
           provenance: mode=max
           sbom: true
-          tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.candidate }}
+          tags: ${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=AI agent runtime optimized for general tasks
+            org.opencontainers.image.description=AI agent runtime optimized for general tasks (${{ matrix.flavor }})
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            org.opencontainers.image.version=${{ steps.meta.outputs.version_tag }}
+          cache-from: type=gha,scope=push-${{ matrix.flavor }}
+          cache-to: type=gha,mode=max,scope=push-${{ matrix.flavor }}
 
-      - name: Verify runtime from pushed digest
+      - name: Verify ${{ matrix.flavor }} runtime from pushed digest
         run: |
           docker pull "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
-          docker tag "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}" "${{ steps.meta.outputs.image }}:verify"
-          docker run --rm "${{ steps.meta.outputs.image }}:verify" verify-runtime
+          docker tag "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}" "${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}"
+          docker run --rm "${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}" verify-runtime
 
-      - name: Promote verified digest to release tags
+      - name: Promote verified ${{ matrix.flavor }} digest to version tags
         run: |
           docker buildx imagetools create \
-            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" \
-            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}" \
+            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version_tag }}" \
             "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
+
+      - name: Promote verified ${{ matrix.flavor }} digest to stable tags
+        run: |
+          tags="${{ steps.meta.outputs.push_tags }}"
+          args=""
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            args="$args --tag $tag"
+          done <<< "$tags"
+          # shellcheck disable=SC2086
+          docker buildx imagetools create $args "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
         with:
           cosign-release: v2.4.3
 
-      - name: Sign image
+      - name: Sign ${{ matrix.flavor }} image
         env:
           COSIGN_YES: true
         run: |

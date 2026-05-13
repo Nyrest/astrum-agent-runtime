@@ -4,14 +4,16 @@ LABEL org.opencontainers.image.title="astrum-agent-runtime" \
       org.opencontainers.image.description="Ubuntu 24.04 AI agent runtime optimized for Hermes Agent Docker backend"
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG NODE_MAJOR=24
+ARG RUNTIME_FLAVOR=full
 ARG BUN_INSTALL=/opt/bun
 ARG UV_INSTALL_DIR=/usr/local/bin
 ARG UV_PYTHON_INSTALL_DIR=/opt/uv-python
 ARG PYTHON_VENV=/opt/python
 
-ENV TZ=Asia/Shanghai \
-    LANG=en_US.UTF-8 \
+ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
+    ASTRUM_RUNTIME_FLAVOR=${RUNTIME_FLAVOR} \
     BUN_INSTALL=${BUN_INSTALL} \
     UV_INSTALL_DIR=${UV_INSTALL_DIR} \
     UV_PYTHON_INSTALL_DIR=${UV_PYTHON_INSTALL_DIR} \
@@ -26,8 +28,9 @@ COPY versions /tmp/runtime-versions
 
 # hadolint ignore=DL3008
 # Fast-moving curl/npm/uv/pip assets are pinned below with exact versions and SHA-256 checks.
-# Apt package versions are intentionally left to signed repository metadata so Ubuntu and vendor security updates can flow,
-# while the third-party NodeSource/GitHub CLI trust roots are still constrained via dedicated keyrings above.
+# Apt package versions are intentionally left to signed repository metadata so Ubuntu and vendor security
+# updates can flow, while the third-party NodeSource/GitHub CLI trust roots are still constrained via
+# dedicated keyrings above.
 RUN set -eux; \
     set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
     printf '%s\n' \
@@ -38,18 +41,9 @@ RUN set -eux; \
     > /etc/apt/apt.conf.d/99agent-runtime-retries; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        wget \
-        gnupg \
-        gpg \
-        lsb-release \
-        apt-transport-https \
-        software-properties-common \
-        tzdata \
-        locales; \
-    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime; \
-    echo "${TZ}" > /etc/timezone; \
+        ca-certificates curl wget gnupg gpg lsb-release apt-transport-https software-properties-common tzdata locales; \
+    ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime; \
+    echo "Asia/Shanghai" > /etc/timezone; \
     sed -i 's/^# *zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen; \
     sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen; \
     locale-gen; \
@@ -65,134 +59,27 @@ RUN set -eux; \
     chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg; \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        nodejs \
-        git \
-        git-lfs \
-        gh \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        autoconf \
-        automake \
-        libtool \
-        make \
-        gcc \
-        g++ \
-        clang \
-        llvm \
-        golang-go \
-        gdb \
-        lldb \
-        strace \
-        file \
-        patch \
-        diffutils \
-        grep \
-        gawk \
-        findutils \
-        coreutils \
-        util-linux \
-        procps \
-        gettext-base \
-        moreutils \
-        expect \
-        shellcheck \
-        shfmt \
-        python3 \
-        python3-pip \
-        python3-venv \
-        pipx \
-        virtualenv \
-        csvkit \
-        httpie \
-        jq \
-        yq \
-        ripgrep \
-        fd-find \
-        miller \
-        aria2 \
-        tmux \
-        rsync \
-        p7zip-full \
-        zip \
-        unzip \
-        xz-utils \
-        zstd \
-        tar \
-        gzip \
-        bzip2 \
-        unrar \
-        rclone \
-        openssh-client \
-        sshpass \
-        netcat-openbsd \
-        dnsutils \
-        iputils-ping \
-        iproute2 \
-        nmap \
-        tcpdump \
-        traceroute \
-        whois \
-        telnet \
-        socat \
-        less \
-        vim-tiny \
-        nano \
-        tree \
-        htop \
-        postgresql-client \
-        default-mysql-client \
-        redis-tools \
-        sqlite3 \
-        libreoffice \
-        libreoffice-writer \
-        libreoffice-calc \
-        libreoffice-impress \
-        libreoffice-java-common \
-        default-jre-headless \
-        pandoc \
-        fonts-noto-cjk \
-        fonts-noto-cjk-extra \
-        fonts-noto-color-emoji \
-        fonts-noto-core \
-        fonts-liberation \
-        fonts-dejavu \
-        fontconfig \
-        poppler-utils \
-        qpdf \
-        ghostscript \
-        ffmpeg \
-        imagemagick \
-        libimage-exiftool-perl \
-        libcairo2 \
-        libpango-1.0-0 \
-        libpangocairo-1.0-0 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libnss3 \
-        libnspr4 \
-        libx11-6 \
-        libx11-xcb1 \
-        libxcb1 \
-        libxcomposite1 \
-        libxcursor1 \
-        libxdamage1 \
-        libxext6 \
-        libxfixes3 \
-        libxi6 \
-        libxrandr2 \
-        libxrender1 \
-        libxss1 \
-        libxtst6 \
-        libgbm1 \
-        libgtk-3-0 \
-        libdrm2 \
-        libasound2t64 \
-        libdbus-1-3 \
-        libatspi2.0-0 \
-        libxkbcommon0; \
+    common_packages=( \
+        nodejs git git-lfs gh build-essential cmake ninja-build pkg-config autoconf automake libtool make gcc g++ clang llvm golang-go \
+        gdb lldb strace file patch diffutils grep gawk findutils coreutils util-linux procps gettext-base moreutils expect shellcheck \
+        shfmt csvkit httpie jq yq ripgrep fd-find miller aria2 tmux rsync p7zip-full zip unzip xz-utils zstd tar gzip bzip2 unrar rclone \
+        openssh-client sshpass netcat-openbsd dnsutils iputils-ping iproute2 nmap tcpdump traceroute whois telnet socat less vim-tiny nano \
+        tree htop postgresql-client default-mysql-client redis-tools sqlite3 pandoc poppler-utils qpdf ghostscript ffmpeg imagemagick \
+        libimage-exiftool-perl libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libatk1.0-0 libatk-bridge2.0-0 libnss3 libnspr4 libx11-6 \
+        libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+        libgbm1 libgtk-3-0 libdrm2 libasound2t64 libdbus-1-3 libatspi2.0-0 libxkbcommon0 \
+    ); \
+    full_only_packages=( \
+        libreoffice libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-java-common default-jre-headless \
+        fonts-noto-cjk fonts-noto-cjk-extra fonts-noto-color-emoji fonts-noto-core fonts-liberation fonts-dejavu fontconfig \
+        latexmk biber chktex lacheck python3-pygments lmodern tex-gyre texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+        texlive-luatex texlive-xetex texlive-fonts-recommended texlive-fonts-extra texlive-font-utils texlive-pictures texlive-pstricks \
+        texlive-science texlive-publishers texlive-bibtex-extra texlive-extra-utils texlive-lang-cjk texlive-lang-chinese texlive-lang-japanese \
+        fonts-cmu fonts-stix fonts-texgyre \
+    ); \
+    packages=( "${common_packages[@]}" ); \
+    if [ "${RUNTIME_FLAVOR}" = "full" ]; then packages+=( "${full_only_packages[@]}" ); fi; \
+    apt-get install -y --no-install-recommends "${packages[@]}"; \
     git lfs install --system; \
     ln -sf /usr/bin/fdfind /usr/local/bin/fd; \
     apt-get clean; \
@@ -343,12 +230,20 @@ RUN set -eux; \
     uv cache clean; \
     rm -rf /tmp/uv.tar.gz "${uv_root}"
 
+RUN set -eux; \
+    export OFFICECLI_DIR="/usr/local/bin"; \
+    curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh | bash; \
+    if [ -f /root/.local/bin/officecli ]; then \
+        ln -sf /root/.local/bin/officecli /usr/local/bin/officecli; \
+    fi; \
+    officecli --version
+
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
     && install -d -m 0755 /usr/local/share/astrum-agent-runtime \
     && cp -R /tmp/runtime-versions /usr/local/share/astrum-agent-runtime/versions \
     && rm -rf /tmp/runtime-versions \
-    && fc-cache -f \
+    && if command -v fc-cache >/dev/null; then fc-cache -f; fi \
     && mkdir -p \
         /workspace \
         /output \
