@@ -216,7 +216,7 @@ RUN set -eux; \
     test -n "${uv_root}"; \
     install -m 0755 "${uv_root}/uv" /usr/local/bin/uv; \
     install -m 0755 "${uv_root}/uvx" /usr/local/bin/uvx; \
-    uv --version | grep -Fx "uv ${UV_VERSION}"; \
+    uv --version | grep -F "uv ${UV_VERSION}"; \
     uv python install "${PYTHON_VERSION}"; \
     uv venv "${PYTHON_VENV}" --python "${PYTHON_VERSION}" --seed; \
     PYBIN="${PYTHON_VENV}/bin/python"; \
