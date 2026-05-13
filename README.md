@@ -44,6 +44,17 @@ docker run --rm -it `
   ghcr.io/nyrest/astrum-agent-runtime:latest
 ```
 
+## 🔐 Supply-Chain Hardening
+
+This repository now keeps the runtime's fast-moving package versions in checked-in manifests:
+
+- `versions/tool-versions.env` — pinned versions and SHA-256 digests for curl-downloaded tools
+- `versions/bun-global-packages.txt` — exact Bun-installed global npm packages
+- `versions/npm-global-packages.txt` — exact npm-installed global packages
+- `versions/python-requirements.txt` — exact Python package pins for `uv pip install`
+
+The Docker build uses only pinned release URLs or SHA-verified downloads for Bun, uv, AWS CLI, cloudflared, DuckDB, yt-dlp, hadolint, websocat, and oxipng. The publish workflow also emits SBOM + provenance attestations and signs pushed images with Cosign.
+
 ## 📦 Pre-installed Packages
 
 Two image flavors are published from the same Dockerfile:
@@ -142,3 +153,5 @@ Every push to `main` (excluding README changes) triggers a GitHub Actions workfl
 - `ghcr.io/nyrest/astrum-agent-runtime:lite`
 - `ghcr.io/nyrest/astrum-agent-runtime:full-YYYYMMDD-shortsha`
 - `ghcr.io/nyrest/astrum-agent-runtime:lite-YYYYMMDD-shortsha`
+
+The published images are signed with Cosign and ship with BuildKit-generated provenance + SBOM attestations.
