@@ -1,0 +1,3 @@
+neonctl@2.22.0
+@googleworkspace/cli@0.22.5
+@larksuite/cli@1.0.29

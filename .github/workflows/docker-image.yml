@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
 
 env:
   IMAGE_NAME: astrum-agent-runtime
@@ -21,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Prepare image metadata
         id: meta
@@ -33,46 +34,29 @@ jobs:
 
           echo "image=ghcr.io/${owner}/${IMAGE_NAME}" >> "${GITHUB_OUTPUT}"
           echo "tag=${date_tag}-${short_sha}" >> "${GITHUB_OUTPUT}"
+          echo "candidate=verify-${short_sha}" >> "${GITHUB_OUTPUT}"
           echo "latest=latest" >> "${GITHUB_OUTPUT}"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build for verification
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          load: true
-          tags: ${{ steps.meta.outputs.image }}:verify
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=AI agent runtime optimized for general tasks
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Verify runtime
-        run: docker run --rm "${{ steps.meta.outputs.image }}:verify" verify-runtime
-
-      - name: Push verified image
-        uses: docker/build-push-action@v6
+      - name: Build and push candidate image with provenance and SBOM
+        id: push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.candidate }}
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=AI agent runtime optimized for general tasks
@@ -81,3 +65,27 @@ jobs:
             org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify runtime from pushed digest
+        run: |
+          docker pull "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
+          docker tag "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}" "${{ steps.meta.outputs.image }}:verify"
+          docker run --rm "${{ steps.meta.outputs.image }}:verify" verify-runtime
+
+      - name: Promote verified digest to release tags
+        run: |
+          docker buildx imagetools create \
+            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" \
+            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}" \
+            "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
+        with:
+          cosign-release: v2.4.3
+
+      - name: Sign image
+        env:
+          COSIGN_YES: true
+        run: |
+          cosign sign "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"

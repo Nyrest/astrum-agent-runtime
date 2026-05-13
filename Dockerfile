@@ -4,10 +4,6 @@ LABEL org.opencontainers.image.title="astrum-agent-runtime" \
       org.opencontainers.image.description="Ubuntu 24.04 AI agent runtime optimized for Hermes Agent Docker backend"
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG NODE_MAJOR=24
-ARG OXIPNG_VERSION=10.1.1
-ARG HADOLINT_VERSION=2.13.1
-ARG WEBSOCAT_VERSION=1.14.1
 ARG BUN_INSTALL=/opt/bun
 ARG UV_INSTALL_DIR=/usr/local/bin
 ARG UV_PYTHON_INSTALL_DIR=/opt/uv-python
@@ -26,14 +22,22 @@ ENV TZ=Asia/Shanghai \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN printf '%s\n' \
+COPY versions /tmp/runtime-versions
+
+# hadolint ignore=DL3008
+# Fast-moving curl/npm/uv/pip assets are pinned below with exact versions and SHA-256 checks.
+# Apt package versions are intentionally left to signed repository metadata so Ubuntu and vendor security updates can flow,
+# while the third-party NodeSource/GitHub CLI trust roots are still constrained via dedicated keyrings above.
+RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    printf '%s\n' \
         'Acquire::Retries "5";' \
         'Acquire::http::Timeout "60";' \
         'Acquire::https::Timeout "60";' \
         'APT::Get::Assume-Yes "true";' \
-    > /etc/apt/apt.conf.d/99agent-runtime-retries \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+    > /etc/apt/apt.conf.d/99agent-runtime-retries; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         wget \
@@ -43,21 +47,25 @@ RUN printf '%s\n' \
         apt-transport-https \
         software-properties-common \
         tzdata \
-        locales \
-    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo "${TZ}" > /etc/timezone \
-    && sed -i 's/^# *zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen \
-    && sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
-    && locale-gen \
-    && add-apt-repository -y multiverse \
-    && install -d -m 0755 /etc/apt/keyrings \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+        locales; \
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime; \
+    echo "${TZ}" > /etc/timezone; \
+    sed -i 's/^# *zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen; \
+    sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen; \
+    locale-gen; \
+    add-apt-repository -y multiverse; \
+    install -d -m 0755 /etc/apt/keyrings; \
+    curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 --retry-connrefused \
+        https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+        | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg; \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list; \
+    curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 --retry-connrefused \
+        https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg; \
+    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg; \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
         nodejs \
         git \
         git-lfs \
@@ -184,112 +192,162 @@ RUN printf '%s\n' \
         libasound2t64 \
         libdbus-1-3 \
         libatspi2.0-0 \
-        libxkbcommon0 \
-    && git lfs install --system \
-    && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL https://bun.sh/install | bash \
-    && bun --version \
-    && bun add -g \
-        turbo \
-        prettier \
-        eslint \
-        tsx \
-        playwright \
-        vercel \
-        wrangler \
-        @google/gemini-cli \
-        typescript \
-        pnpm \
-        yarn \
-    && rm -rf /root/.bun/install/cache \
-    && npm install -g \
-        neonctl \
-        @googleworkspace/cli \
-        @larksuite/cli \
-    && npm cache clean --force
-
-RUN curl -fsSL -o /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
-    && chmod +x /usr/local/bin/yt-dlp \
-    && curl -fsSL -o /tmp/cloudflared.deb "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$(dpkg --print-architecture).deb" \
-    && dpkg -i /tmp/cloudflared.deb \
-    && curl -A "Mozilla/5.0" -fsSL -o /tmp/oxipng.deb "https://github.com/oxipng/oxipng/releases/download/v${OXIPNG_VERSION}/oxipng_${OXIPNG_VERSION}-1_$(dpkg --print-architecture).deb" \
-    && dpkg -i /tmp/oxipng.deb \
-    && rm -f /tmp/cloudflared.deb /tmp/oxipng.deb
+        libxkbcommon0; \
+    git lfs install --system; \
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    fetch_and_verify() { \
+        local url="$1" dest="$2" expected_sha="$3"; \
+        curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 --retry-connrefused -o "$dest" "$url"; \
+        echo "${expected_sha}  $dest" | sha256sum -c -; \
+    }; \
+    case "$(dpkg --print-architecture)" in \
+        amd64) \
+            bun_asset='bun-linux-x64.zip'; \
+            bun_sha="${BUN_X64_SHA256}"; \
+            ;; \
+        arm64) \
+            bun_asset='bun-linux-aarch64.zip'; \
+            bun_sha="${BUN_AARCH64_SHA256}"; \
+            ;; \
+        *) \
+            echo "Unsupported architecture: $(dpkg --print-architecture)" >&2; \
+            exit 1; \
+            ;; \
+    esac; \
+    install -d -m 0755 "${BUN_INSTALL}/bin" /tmp/bun; \
+    fetch_and_verify "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/${bun_asset}" /tmp/bun.zip "${bun_sha}"; \
+    unzip -q /tmp/bun.zip -d /tmp/bun; \
+    install -m 0755 /tmp/bun/*/bun "${BUN_INSTALL}/bin/bun"; \
+    ln -sf "${BUN_INSTALL}/bin/bun" /usr/local/bin/bun; \
+    ln -sf "${BUN_INSTALL}/bin/bun" /usr/local/bin/bunx; \
+    bun --version | grep -Fx "${BUN_VERSION}"; \
+    xargs -a /tmp/runtime-versions/bun-global-packages.txt bun add -g; \
+    rm -rf /root/.bun/install/cache; \
+    xargs -a /tmp/runtime-versions/npm-global-packages.txt npm install -g; \
+    npm cache clean --force
+
+RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    fetch_and_verify() { \
+        local url="$1" dest="$2" expected_sha="$3"; \
+        curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 --retry-connrefused -o "$dest" "$url"; \
+        echo "${expected_sha}  $dest" | sha256sum -c -; \
+    }; \
     arch="$(dpkg --print-architecture)"; \
     case "${arch}" in \
         amd64) \
-            aws_arch="x86_64"; \
-            hadolint_arch="x86_64"; \
-            websocat_asset="websocat.x86_64-unknown-linux-musl"; \
+            aws_arch='x86_64'; \
+            aws_sha="${AWSCLI_X86_64_SHA256}"; \
+            yt_dlp_asset='yt-dlp_linux'; \
+            yt_dlp_sha="${YT_DLP_X86_64_SHA256}"; \
+            cloudflared_asset='cloudflared-linux-amd64.deb'; \
+            cloudflared_sha="${CLOUDFLARED_AMD64_SHA256}"; \
+            duckdb_asset='duckdb_cli-linux-amd64.zip'; \
+            duckdb_sha="${DUCKDB_AMD64_SHA256}"; \
+            hadolint_asset='hadolint-linux-x86_64'; \
+            hadolint_sha="${HADOLINT_X86_64_SHA256}"; \
+            websocat_asset='websocat.x86_64-unknown-linux-musl'; \
+            websocat_sha="${WEBSOCAT_X86_64_SHA256}"; \
+            oxipng_asset="oxipng_${OXIPNG_VERSION}-1_amd64.deb"; \
+            oxipng_sha="${OXIPNG_AMD64_SHA256}"; \
             ;; \
         arm64) \
-            aws_arch="aarch64"; \
-            hadolint_arch="arm64"; \
-            websocat_asset="websocat.aarch64-unknown-linux-musl"; \
+            aws_arch='aarch64'; \
+            aws_sha="${AWSCLI_AARCH64_SHA256}"; \
+            yt_dlp_asset='yt-dlp_linux_aarch64'; \
+            yt_dlp_sha="${YT_DLP_AARCH64_SHA256}"; \
+            cloudflared_asset='cloudflared-linux-arm64.deb'; \
+            cloudflared_sha="${CLOUDFLARED_ARM64_SHA256}"; \
+            duckdb_asset='duckdb_cli-linux-arm64.zip'; \
+            duckdb_sha="${DUCKDB_ARM64_SHA256}"; \
+            hadolint_asset='hadolint-linux-arm64'; \
+            hadolint_sha="${HADOLINT_ARM64_SHA256}"; \
+            websocat_asset='websocat.aarch64-unknown-linux-musl'; \
+            websocat_sha="${WEBSOCAT_AARCH64_SHA256}"; \
+            oxipng_asset="oxipng_${OXIPNG_VERSION}-1_arm64.deb"; \
+            oxipng_sha="${OXIPNG_ARM64_SHA256}"; \
             ;; \
         *) \
             echo "Unsupported architecture: ${arch}" >&2; \
             exit 1; \
             ;; \
     esac; \
-    curl -fsSL -o /tmp/awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip"; \
+    fetch_and_verify "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" /tmp/awscliv2.zip "${aws_sha}"; \
     unzip -q /tmp/awscliv2.zip -d /tmp; \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli; \
-    curl -fsSL -o /tmp/install-duckdb.sh https://install.duckdb.org; \
-    sh /tmp/install-duckdb.sh; \
-    ln -sf /root/.duckdb/cli/latest/duckdb /usr/local/bin/duckdb; \
-    curl -fsSL -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-${hadolint_arch}"; \
+    aws --version | grep -F "aws-cli/${AWSCLI_VERSION}"; \
+    fetch_and_verify "https://github.com/yt-dlp/yt-dlp/releases/download/${YT_DLP_VERSION}/${yt_dlp_asset}" /usr/local/bin/yt-dlp "${yt_dlp_sha}"; \
+    chmod +x /usr/local/bin/yt-dlp; \
+    yt-dlp --version | grep -Fx "${YT_DLP_VERSION}"; \
+    fetch_and_verify "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/${cloudflared_asset}" /tmp/cloudflared.deb "${cloudflared_sha}"; \
+    dpkg -i /tmp/cloudflared.deb; \
+    cloudflared --version | grep -F "${CLOUDFLARED_VERSION}"; \
+    fetch_and_verify "https://github.com/oxipng/oxipng/releases/download/v${OXIPNG_VERSION}/${oxipng_asset}" /tmp/oxipng.deb "${oxipng_sha}"; \
+    dpkg -i /tmp/oxipng.deb; \
+    oxipng --version | grep -F "${OXIPNG_VERSION}"; \
+    fetch_and_verify "https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/${duckdb_asset}" /tmp/duckdb.zip "${duckdb_sha}"; \
+    unzip -q /tmp/duckdb.zip -d /tmp/duckdb; \
+    install -m 0755 /tmp/duckdb/duckdb /usr/local/bin/duckdb; \
+    duckdb --version | grep -F "${DUCKDB_VERSION}"; \
+    fetch_and_verify "https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/${hadolint_asset}" /usr/local/bin/hadolint "${hadolint_sha}"; \
     chmod +x /usr/local/bin/hadolint; \
-    curl -fsSL -o /usr/local/bin/websocat "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/${websocat_asset}"; \
+    hadolint --version | grep -F "${HADOLINT_VERSION}"; \
+    fetch_and_verify "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/${websocat_asset}" /usr/local/bin/websocat "${websocat_sha}"; \
     chmod +x /usr/local/bin/websocat; \
-    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/install-duckdb.sh
+    websocat --version | grep -F "${WEBSOCAT_VERSION}"; \
+    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/cloudflared.deb /tmp/duckdb /tmp/duckdb.zip /tmp/oxipng.deb
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && uv --version \
-    && uv python install 3.14 \
-    && uv venv "${PYTHON_VENV}" --python 3.14 --seed \
-    && PYBIN="${PYTHON_VENV}/bin/python" \
-    && ln -sf "${PYBIN}" /usr/local/bin/python3.14 \
-    && ln -sf "${PYBIN}" /usr/local/bin/python3 \
-    && ln -sf "${PYBIN}" /usr/local/bin/python \
-    && uv pip install --python "${PYTHON_VENV}" \
-        pip \
-        pipx \
-        virtualenv \
-        setuptools \
-        wheel \
-        requests \
-        httpx \
-        pydantic \
-        python-dotenv \
-        toml \
-        duckdb \
-        beautifulsoup4 \
-        markdown \
-        python-multipart \
-        pypdf \
-        pymupdf \
-        pdfplumber \
-        python-docx \
-        openpyxl \
-        python-pptx \
-        pandas \
-        pyarrow \
-        tabulate \
-        numpy \
-        ruff \
-    && PIPBIN="$("${PYBIN}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("scripts"), "pip"))')" \
-    && ln -sf "${PIPBIN}" /usr/local/bin/pip3 \
-    && ln -sf /usr/local/bin/pip3 /usr/local/bin/pip \
-    && uv cache clean
+RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    fetch_and_verify() { \
+        local url="$1" dest="$2" expected_sha="$3"; \
+        curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 --retry-connrefused -o "$dest" "$url"; \
+        echo "${expected_sha}  $dest" | sha256sum -c -; \
+    }; \
+    case "$(dpkg --print-architecture)" in \
+        amd64) \
+            uv_asset='uv-x86_64-unknown-linux-gnu.tar.gz'; \
+            uv_sha="${UV_X86_64_SHA256}"; \
+            ;; \
+        arm64) \
+            uv_asset='uv-aarch64-unknown-linux-gnu.tar.gz'; \
+            uv_sha="${UV_AARCH64_SHA256}"; \
+            ;; \
+        *) \
+            echo "Unsupported architecture: $(dpkg --print-architecture)" >&2; \
+            exit 1; \
+            ;; \
+    esac; \
+    fetch_and_verify "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${uv_asset}" /tmp/uv.tar.gz "${uv_sha}"; \
+    tar -xzf /tmp/uv.tar.gz -C /tmp; \
+    uv_root="$(find /tmp -maxdepth 1 -type d -name 'uv-*' | head -n 1)"; \
+    test -n "${uv_root}"; \
+    install -m 0755 "${uv_root}/uv" /usr/local/bin/uv; \
+    install -m 0755 "${uv_root}/uvx" /usr/local/bin/uvx; \
+    uv --version | grep -Fx "uv ${UV_VERSION}"; \
+    uv python install "${PYTHON_VERSION}"; \
+    uv venv "${PYTHON_VENV}" --python "${PYTHON_VERSION}" --seed; \
+    PYBIN="${PYTHON_VENV}/bin/python"; \
+    ln -sf "${PYBIN}" /usr/local/bin/python${PYTHON_VERSION}; \
+    ln -sf "${PYBIN}" /usr/local/bin/python3; \
+    ln -sf "${PYBIN}" /usr/local/bin/python; \
+    uv pip install --python "${PYTHON_VENV}" -r /tmp/runtime-versions/python-requirements.txt; \
+    PIPBIN="$("${PYBIN}" -c 'import os, sysconfig; print(os.path.join(sysconfig.get_path("scripts"), "pip"))')"; \
+    ln -sf "${PIPBIN}" /usr/local/bin/pip3; \
+    ln -sf /usr/local/bin/pip3 /usr/local/bin/pip; \
+    uv cache clean; \
+    rm -rf /tmp/uv.tar.gz "${uv_root}"
 
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
+    && install -d -m 0755 /usr/local/share/astrum-agent-runtime \
+    && cp -R /tmp/runtime-versions /usr/local/share/astrum-agent-runtime/versions \
+    && rm -rf /tmp/runtime-versions \
     && fc-cache -f \
     && mkdir -p \
         /workspace \
