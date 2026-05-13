@@ -51,7 +51,7 @@ Two image flavors are published from the same Dockerfile:
 - **full** — the original batteries-included image with document suites, large font packs, and LaTeX tooling
 - **lite** — keeps the core agent/dev/runtime stack but omits the heaviest document/font packages to reduce image size
 
-The table below describes the shared baseline plus the biggest full-only extras.
+The first table below describes the shared baseline available in both image flavors.
 
 | Category | Key Tools & Packages |
 | :--- | :--- |
@@ -67,8 +67,16 @@ The table below describes the shared baseline plus the biggest full-only extras.
 | **Text & Data Utils** | `jq`, `yq`, `rg` (ripgrep), `fd`, `mlr` (miller), `csvkit`, `tmux` |
 | **Build Essentials** | `gcc`, `g++`, `clang`, `cmake`, `ninja`, `make`, `gdb`, `lldb`, `strace` |
 | **Compression** | `zip`, `unzip`, `7z`, `tar`, `zstd`, `unrar` |
-| **full-only extras** | LibreOffice (Headless), Java (JRE Headless), Noto/CMU/STIX/TeX Gyre fonts, `latexmk`, `biber`, `chktex`, `lualatex`, `xelatex`, `pdflatex` |
 | **Data Science & Viz** | JupyterLab, Notebook, matplotlib, seaborn, scipy, pillow, imageio |
+
+Full-only packages:
+
+| Category | Key Tools & Packages |
+| :--- | :--- |
+| **Office Suite** | LibreOffice (Headless), `libreoffice-writer`, `libreoffice-calc`, `libreoffice-impress` |
+| **Java Runtime** | Java (JRE Headless), `libreoffice-java-common` |
+| **Fonts** | Noto CJK, Noto CJK Extra, Noto Color Emoji, Noto Core, Liberation, DejaVu, CMU, STIX, TeX Gyre |
+| **LaTeX & Academic** | `latexmk`, `biber`, `chktex`, `lacheck`, `pygmentize`, `lualatex`, `xelatex`, `pdflatex` |
 
 ## 🤖 Hermes Agent Configuration
 
