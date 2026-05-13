@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "== locale and timezone =="
-test "$(cat /etc/timezone)" = "Asia/Shanghai"
+echo "== locale =="
 date
 locale | grep 'LANG=en_US.UTF-8'
 

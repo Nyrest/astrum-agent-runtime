@@ -13,8 +13,7 @@ ARG UV_INSTALL_DIR=/usr/local/bin
 ARG UV_PYTHON_INSTALL_DIR=/opt/uv-python
 ARG PYTHON_VENV=/opt/python
 
-ENV TZ=Asia/Shanghai \
-    LANG=en_US.UTF-8 \
+ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     BUN_INSTALL=${BUN_INSTALL} \
     UV_INSTALL_DIR=${UV_INSTALL_DIR} \
@@ -42,11 +41,7 @@ RUN printf '%s\n' \
         lsb-release \
         apt-transport-https \
         software-properties-common \
-        tzdata \
         locales \
-    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo "${TZ}" > /etc/timezone \
-    && sed -i 's/^# *zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen \
     && sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen \
     && add-apt-repository -y multiverse \
