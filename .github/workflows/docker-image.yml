@@ -69,7 +69,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ${{ matrix.flavor }} candidate with attestations
+      - name: Build and push ${{ matrix.flavor }} candidate by digest with attestations
         id: push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
@@ -77,10 +77,10 @@ jobs:
           file: ./Dockerfile
           build-args: |
             RUNTIME_FLAVOR=${{ matrix.flavor }}
-          push: true
+          # Push by digest so verification does not leave verify-full/verify-lite tags behind in GHCR.
+          outputs: type=image,name=${{ steps.meta.outputs.image }},push-by-digest=true,name-canonical=true,push=true
           provenance: mode=max
           sbom: true
-          tags: ${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=AI agent runtime optimized for general tasks (${{ matrix.flavor }})
@@ -93,8 +93,7 @@ jobs:
       - name: Verify ${{ matrix.flavor }} runtime from pushed digest
         run: |
           docker pull "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}"
-          docker tag "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}" "${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}"
-          docker run --rm "${{ steps.meta.outputs.image }}:verify-${{ matrix.flavor }}" verify-runtime
+          docker run --rm "${{ steps.meta.outputs.image }}@${{ steps.push.outputs.digest }}" verify-runtime
 
       - name: Promote verified ${{ matrix.flavor }} digest to version tags
         run: |

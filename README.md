@@ -74,7 +74,7 @@ The first table below describes the shared baseline available in both image flav
 | **Document Processing** | `pandoc`, **`officecli`**, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
 | **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)** |
 | **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, **HTTPie (`http`)**, `websocat`, `socat`, `sshpass` |
-| **Cloud & DevOps** | `aws-cli`, `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
+| **Cloud & DevOps** | `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
 | **Multimedia** | `ffmpeg`, `yt-dlp`, ImageMagick, `exiftool`, `oxipng` |
 | **Text & Data Utils** | `jq`, `yq`, `rg` (ripgrep), `fd`, `mlr` (miller), `csvkit`, `tmux` |
 | **Build Essentials** | `gcc`, `g++`, `clang`, `cmake`, `ninja`, `make`, `gdb`, `lldb`, `strace` |

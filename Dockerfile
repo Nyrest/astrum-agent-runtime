@@ -128,8 +128,6 @@ RUN set -eux; \
     arch="$(dpkg --print-architecture)"; \
     case "${arch}" in \
         amd64) \
-            aws_arch='x86_64'; \
-            aws_sha="${AWSCLI_X86_64_SHA256}"; \
             yt_dlp_asset='yt-dlp_linux'; \
             yt_dlp_sha="${YT_DLP_X86_64_SHA256}"; \
             cloudflared_asset='cloudflared-linux-amd64.deb'; \
@@ -144,8 +142,6 @@ RUN set -eux; \
             oxipng_sha="${OXIPNG_AMD64_SHA256}"; \
             ;; \
         arm64) \
-            aws_arch='aarch64'; \
-            aws_sha="${AWSCLI_AARCH64_SHA256}"; \
             yt_dlp_asset='yt-dlp_linux_aarch64'; \
             yt_dlp_sha="${YT_DLP_AARCH64_SHA256}"; \
             cloudflared_asset='cloudflared-linux-arm64.deb'; \
@@ -164,10 +160,6 @@ RUN set -eux; \
             exit 1; \
             ;; \
     esac; \
-    fetch_and_verify "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" /tmp/awscliv2.zip "${aws_sha}"; \
-    unzip -q /tmp/awscliv2.zip -d /tmp; \
-    /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli; \
-    aws --version | grep -F "aws-cli/${AWSCLI_VERSION}"; \
     fetch_and_verify "https://github.com/yt-dlp/yt-dlp/releases/download/${YT_DLP_VERSION}/${yt_dlp_asset}" /usr/local/bin/yt-dlp "${yt_dlp_sha}"; \
     chmod +x /usr/local/bin/yt-dlp; \
     yt-dlp --version | grep -Fx "${YT_DLP_VERSION}"; \
@@ -187,7 +179,7 @@ RUN set -eux; \
     fetch_and_verify "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/${websocat_asset}" /usr/local/bin/websocat "${websocat_sha}"; \
     chmod +x /usr/local/bin/websocat; \
     websocat --version | grep -F "${WEBSOCAT_VERSION}"; \
-    rm -rf /tmp/aws /tmp/awscliv2.zip /tmp/cloudflared.deb /tmp/duckdb /tmp/duckdb.zip /tmp/oxipng.deb
+    rm -rf /tmp/cloudflared.deb /tmp/duckdb /tmp/duckdb.zip /tmp/oxipng.deb
 
 RUN set -eux; \
     set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
