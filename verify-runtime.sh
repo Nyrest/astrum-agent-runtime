@@ -34,7 +34,7 @@ for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2
 done
 
 echo "== network and text tools =="
-for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared http websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff aws neon neonctl gws lark-cli sshpass; do
+for cmd in dig nslookup ip ping nc nmap tcpdump traceroute whois cloudflared http websocat awk gawk grep envsubst diff patch csvcut mlr shellcheck shfmt hadolint ruff neon neonctl gws lark-cli sshpass; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
@@ -49,7 +49,6 @@ expect_exact duckdb "$(duckdb --version | awk '{print $1}' | trim_version)" "${D
 expect_exact hadolint "$(hadolint --version | awk '{print $NF}' | trim_version)" "${HADOLINT_VERSION}"
 expect_exact websocat "$(websocat --version | awk '{print $2}' | trim_version)" "${WEBSOCAT_VERSION}"
 expect_exact oxipng "$(oxipng --version | awk '{print $2}' | trim_version)" "${OXIPNG_VERSION}"
-expect_exact aws "$(aws --version 2>&1 | awk -F'[ /]' '{print $2}' | trim_version)" "${AWSCLI_VERSION}"
 expect_exact pnpm "$(pnpm --version | trim_version)" "11.1.1"
 expect_exact yarn "$(yarn --version | trim_version)" "1.22.22"
 expect_exact prettier "$(prettier --version | trim_version)" "3.8.3"
