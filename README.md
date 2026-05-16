@@ -71,7 +71,7 @@ The first table below describes the shared baseline available in both image flav
 | **Package Managers** | `npm`, `pnpm`, `yarn`, `bun`, `uv`, `pip`, `pipx` |
 | **Web & API CLIs** | `vercel`, `wrangler` (Cloudflare), `gemini` (Google), `gws` (Google Workspace), `lark-cli` (Feishu), mermaid-cli (`mmdc`) |
 | **Python Libraries** | `requests`, `httpx`, `pydantic`, `pandas`, `numpy`, `beautifulsoup4`, `ruff`, `duckdb` |
-| **Document Processing** | `pandoc`, **`officecli`**, `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
+| **Document Processing** | `pandoc`, **`officecli`**, `pypdf`, `pymupdf`, `pymupdf4llm`, `pdfplumber`, `python-docx`, `openpyxl`, `python-pptx` |
 | **Database Clients** | PostgreSQL, MySQL, Redis, SQLite, DuckDB, **Neon (`neonctl`)** |
 | **Network Tools** | `curl`, `wget`, `aria2`, `nmap`, `cloudflared`, **HTTPie (`http`)**, `websocat`, `socat`, `sshpass` |
 | **Cloud & DevOps** | `gh` (GitHub CLI), `git-lfs`, `rclone`, `hadolint`, `shellcheck` |
