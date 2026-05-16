@@ -89,24 +89,9 @@ terminal:
   docker_image: ghcr.io/nyrest/astrum-agent-runtime:latest
   docker_forward_env:
     - TZ
-    - GITHUB_TOKEN
-    - GEMINI_API_KEY
-    - OPENAI_API_KEY
-    - ANTHROPIC_API_KEY
 ```
 
 Use `:latest`/`:full` for the current batteries-included environment, or switch `docker_image` to `ghcr.io/nyrest/astrum-agent-runtime:lite` for a smaller base image.
-
-## 🔑 Environment Variables
-
-Common variables to forward for specific use cases:
-
-| Service | Variables |
-| :--- | :--- |
-| **GitHub** | `GITHUB_TOKEN`, `GH_TOKEN` |
-| **AI Providers** | `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `HF_TOKEN` |
-| **Cloud** | `VERCEL_TOKEN`, `CLOUDFLARE_API_TOKEN`, `AWS_ACCESS_KEY_ID` |
-| **Databases** | `DATABASE_URL`, `PGPASSWORD`, `MYSQL_PWD` |
 
 ## 🛠 Technical Details
 
