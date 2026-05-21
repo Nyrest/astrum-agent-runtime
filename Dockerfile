@@ -230,6 +230,23 @@ RUN set -eux; \
     fi; \
     officecli --version
 
+# Install pinned kdocs-cli v2.5.2 (CLI only — no skill files)
+RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64) kdocs_arch="amd64" ;; \
+        arm64) kdocs_arch="arm64" ;; \
+        *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    kdocs_url="https://wpsai.wpscdn.cn/skillhub/pro/v${KDOCS_CLI_VERSION}/releases/kdocs-cli-${KDOCS_CLI_VERSION}-linux-${kdocs_arch}.tar.gz"; \
+    echo "Downloading kdocs-cli v${KDOCS_CLI_VERSION} (${kdocs_arch})..."; \
+    curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 -o /tmp/kdocs-cli.tar.gz "$kdocs_url"; \
+    tar -xzf /tmp/kdocs-cli.tar.gz -C /tmp; \
+    install -m 0755 /tmp/kdocs-cli /usr/local/bin/kdocs-cli; \
+    rm -f /tmp/kdocs-cli.tar.gz /tmp/kdocs-cli; \
+    kdocs-cli version | grep -F "${KDOCS_CLI_VERSION}"
+
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
     && install -d -m 0755 /usr/local/share/astrum-agent-runtime \
