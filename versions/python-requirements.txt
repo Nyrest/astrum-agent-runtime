@@ -32,3 +32,4 @@ seaborn==0.13.2
 scipy==1.17.1
 pillow==12.2.0
 imageio==2.37.3
+reportlab==4.3.1
