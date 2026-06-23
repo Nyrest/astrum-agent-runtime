@@ -28,7 +28,7 @@ echo "== runtime flavor =="
 printf '%s\n' "$flavor"
 
 echo "== base commands =="
-for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 pandoc jq yq fd officecli mmdc kdocs-cli; do
+for cmd in printenv envsubst timeout flock stdbuf script git git-lfs gh rg aria2c tmux rsync 7z zip unzip unrar rclone ffmpeg ffprobe yt-dlp convert identify exiftool oxipng duckdb psql mysql redis-cli sqlite3 pandoc jq yq fd officecli mmdc kdocs-cli agy; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
@@ -57,7 +57,7 @@ expect_exact tsx "$(tsx --version 2>/dev/null | awk 'NR==1 {print $2}' | trim_ve
 expect_exact playwright "$(playwright --version | awk '{print $2}' | trim_version)" "1.60.0"
 expect_exact vercel "$(vercel --version 2>/dev/null | trim_version)" "53.4.0"
 expect_exact wrangler "$(wrangler --version 2>/dev/null | trim_version)" "4.90.1"
-expect_exact gemini "$(gemini --version | awk '{print $NF}' | trim_version)" "0.42.0"
+expect_exact agy "$(agy --version | awk '{print $1}' | trim_version)" "${ANTIGRAVITY_CLI_VERSION}"
 expect_exact kdocs-cli "$(kdocs-cli version | trim_version)" "${KDOCS_CLI_VERSION}"
 
 echo "== go =="
@@ -86,7 +86,7 @@ echo "== node and bun =="
 node --version | grep '^v24\.'
 npm --version
 bun --version
-for cmd in turbo prettier eslint tsx playwright vercel wrangler gemini tsc pnpm yarn; do
+for cmd in turbo prettier eslint tsx playwright vercel wrangler tsc pnpm yarn; do
   command -v "$cmd" >/dev/null
   printf '%-14s %s\n' "$cmd" "$(command -v "$cmd")"
 done
