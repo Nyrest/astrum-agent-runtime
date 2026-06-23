@@ -47,6 +47,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Free disk space before build
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /usr/local/.ghcup
+          sudo docker system prune -af || true
+          df -h /
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -60,7 +66,7 @@ jobs:
           load: true
           tags: ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.flavor }}
           cache-from: type=gha,scope=pr-${{ matrix.flavor }}
-          cache-to: type=gha,mode=max,scope=pr-${{ matrix.flavor }}
+          cache-to: type=gha,mode=min,scope=pr-${{ matrix.flavor }}
 
       - name: Verify runtime
         run: docker run --rm "${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.flavor }}" verify-runtime

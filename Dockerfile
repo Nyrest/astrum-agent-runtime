@@ -247,6 +247,29 @@ RUN set -eux; \
     rm -f /tmp/kdocs-cli.tar.gz /tmp/kdocs-cli; \
     kdocs-cli version | grep -F "${KDOCS_CLI_VERSION}"
 
+# Install pinned Antigravity CLI v1.0.10 (agy)
+RUN set -eux; \
+    set -a; source /tmp/runtime-versions/tool-versions.env; set +a; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64) \
+            agy_url="https://storage.googleapis.com/antigravity-public/antigravity-cli/${ANTIGRAVITY_CLI_VERSION}-6349723456634880/linux-x64/cli_linux_x64.tar.gz"; \
+            agy_sha="${ANTIGRAVITY_CLI_AMD64_SHA512}"; \
+            ;; \
+        arm64) \
+            agy_url="https://storage.googleapis.com/antigravity-public/antigravity-cli/${ANTIGRAVITY_CLI_VERSION}-6349723456634880/linux-arm/cli_linux_arm64.tar.gz"; \
+            agy_sha="${ANTIGRAVITY_CLI_ARM64_SHA512}"; \
+            ;; \
+        *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    echo "Downloading Antigravity CLI v${ANTIGRAVITY_CLI_VERSION} ($arch)..."; \
+    curl --fail --show-error --silent --location --proto '=https' --tlsv1.2 --retry 5 --retry-delay 2 -o /tmp/agy.tar.gz "$agy_url"; \
+    echo "${agy_sha}  /tmp/agy.tar.gz" | sha512sum -c -; \
+    tar -xzf /tmp/agy.tar.gz -C /tmp; \
+    install -m 0755 /tmp/antigravity /usr/local/bin/agy; \
+    rm -f /tmp/agy.tar.gz /tmp/antigravity; \
+    agy --version | grep -F "${ANTIGRAVITY_CLI_VERSION}"
+
 COPY verify-runtime.sh /usr/local/bin/verify-runtime
 RUN chmod +x /usr/local/bin/verify-runtime \
     && install -d -m 0755 /usr/local/share/astrum-agent-runtime \
